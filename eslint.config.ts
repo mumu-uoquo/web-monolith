@@ -65,11 +65,18 @@ export default [
   // 忽略文件配置
   {
     ignores: [
-      "**/node_modules/**",
-      "**/dist/**",
-      "**/*.min.*",
-      "**/auto-imports.d.ts",
-      "**/components.d.ts",
+      "**/package.json", // 排除配置文件
+      "**/uno.config.ts", // 排除 UnoCSS 配置文件
+      "**/vite.config.*", // 排除 Vite 配置文件
+      "**/eslint.config.*", // 排除 ESLint 配置文件
+      "**/*config.*", // 排除所有配置文件
+      "**/node_modules/**", // 排除 node_modules
+      "**/dist/**", // 排除构建目录
+      "**/*.min.*", // 排除三方成品库
+      "**/auto-imports.d.ts", // 排除自动生成文件
+      "**/components.d.ts", // 排除自动生成文件
+      "**/assets/**", // 排除导入的三方资源
+      "src/libs/**", // 排除 libs 目录
       "types/**/*.d.ts",
     ],
   },
@@ -153,7 +160,12 @@ export default [
       "vue/no-v-html": "off",
       "vue/require-default-prop": "off",
       "vue/require-explicit-emits": "error",
-      "vue/no-unused-vars": "error",
+      "vue/no-unused-vars": [
+        "error",
+        {
+          ignorePattern: "^_", // 忽略以下划线开头的变量
+        },
+      ],
       "vue/no-mutating-props": "off",
       "vue/valid-v-for": "warn",
       "vue/no-template-shadow": "warn",

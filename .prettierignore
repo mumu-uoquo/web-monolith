@@ -8,5 +8,6 @@ public
 *.md
 
 src/assets
+src/libs
 stats.html
 pnpm-lock.yaml

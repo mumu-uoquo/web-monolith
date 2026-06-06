@@ -6,6 +6,8 @@ public
 .idea
 *.sh
 *.md
+build*.zip
 
 src/assets
+src/libs
 stats.html

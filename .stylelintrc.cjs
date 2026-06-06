@@ -20,6 +20,7 @@ module.exports = {
       customSyntax: "postcss-scss",
     },
   ],
+  ignoreFiles: ["node_modules/**/*", "dist/**/*", "src/assets/**/*", "src/libs/**/*"],
   rules: {
     "prettier/prettier": true, // 强制执行 Prettier 格式化规则（需配合 .prettierrc 配置文件）
     "no-empty-source": null, //  允许空的样式文件
