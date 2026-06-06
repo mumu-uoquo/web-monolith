@@ -8,6 +8,7 @@ import { ElementPlusResolver } from "unplugin-vue-components/resolvers";
 import { mockDevServerPlugin } from "vite-plugin-mock-dev-server";
 
 import UnoCSS from "unocss/vite";
+import yaml from "@rollup/plugin-yaml";
 import { resolve } from "path";
 import { name, version } from "./package.json";
 
@@ -25,6 +26,8 @@ export default defineConfig(({ mode }: ConfigEnv): UserConfig => {
   const env = loadEnv(mode, process.cwd());
 
   return {
+    // 若base中有域名时，开发模式下域名部分不会被使用（注：域名将对静态文件也生效）
+    base: "/",
     resolve: {
       alias: {
         "@": pathSrc,
@@ -39,12 +42,17 @@ export default defineConfig(({ mode }: ConfigEnv): UserConfig => {
       },
     },
     server: {
+      // 主机地址
       host: "0.0.0.0",
+      // 端口号
       port: +env.VITE_APP_PORT,
+      // 是否自动在浏览器中打开
       open: true,
       proxy: {
+        // 代理前缀为 /dev-api 的请求
         [env.VITE_APP_BASE_API]: {
           changeOrigin: true,
+          // 代理目标真实接口地址：https://api.youlai.tech
           target: env.VITE_APP_API_URL,
           rewrite: (path: string) => path.replace(new RegExp(`^${env.VITE_APP_BASE_API}`), ""),
         },
@@ -52,9 +60,12 @@ export default defineConfig(({ mode }: ConfigEnv): UserConfig => {
     },
     plugins: [
       vue(),
+      // 主要用于语言包的读取
+      yaml(),
+      // MOCK 服务
       ...(env.VITE_MOCK_DEV_SERVER === "true" ? [mockDevServerPlugin()] : []),
       UnoCSS(),
-      // API 自动导入
+      // API 自动导入配置 https://github.com/sxzz/element-plus-best-practices/blob/main/vite.config.ts
       AutoImport({
         // 导入 Vue 函数，如：ref, reactive, toRef 等
         imports: ["vue", "@vueuse/core", "pinia", "vue-router", "vue-i18n"],
@@ -63,10 +74,13 @@ export default defineConfig(({ mode }: ConfigEnv): UserConfig => {
           ElementPlusResolver({ importStyle: "sass" }),
         ],
         eslintrc: {
+          // 是否自动生成 eslint 规则，建议生成之后设置 false
           enabled: false,
+          // 指定自动导入函数 eslint 规则的文件
           filepath: "./.eslintrc-auto-import.json",
           globalsPropValue: true,
         },
+        // 是否在 vue 模板中自动导入
         vueTemplate: true,
         // 导入函数类型声明文件路径 (false:关闭自动生成)
         dts: false,
@@ -79,7 +93,8 @@ export default defineConfig(({ mode }: ConfigEnv): UserConfig => {
           ElementPlusResolver({ importStyle: "sass" }),
         ],
         // 指定自定义组件位置(默认:src/components)
-        dirs: ["src/components", "src/**/components"],
+        // 仅自动加载全局通用组件，局部组件不自动加载"src/**/components"
+        dirs: ["src/components"],
         // 导入组件类型声明文件路径 (false:关闭自动生成)
         dts: false,
         //dts: "src/types/components.d.ts",
@@ -196,6 +211,8 @@ export default defineConfig(({ mode }: ConfigEnv): UserConfig => {
       reportCompressedSize: false,
       cssMinify: "lightningcss", // Vite 8 默认使用 Lightning CSS 压缩
       // minify 默认使用 'oxc'，压缩速度比 terser 快 30-90 倍
+
+      // 多页模式时参考： https://cn.vitejs.dev/guide/build.html#multi-page-app
       rolldownOptions: {
         output: {
           // 用于从入口点创建的块的打包输出格式
