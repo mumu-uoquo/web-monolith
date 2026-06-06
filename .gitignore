@@ -5,6 +5,7 @@ node_modules/
 dist/
 dist-ssr/
 stats.html
+build*.zip
 
 # Local env files
 *.local
@@ -31,6 +32,7 @@ Thumbs.db
 
 # Lock files (use pnpm)
 package-lock.json
+pnpm-lock.yaml
 yarn.lock
 
 # Local history
