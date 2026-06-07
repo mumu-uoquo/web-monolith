@@ -3,12 +3,18 @@
  *
  * @description
  * 包含应用中所有的常量定义，包括角色、存储键名等
+ *
+ * 存储键命名规范：
+ * - 使用小写 + 冒号分隔 + 名称空间
+ * - 格式：myapp:user:token
+ * - 便于清理和避免冲突
+ * - 当需要版本升级、兼容旧数据，可在 key 中加入版本如 myapp:v2:user:token。
  */
 
 /**
  * 应用存储前缀
  */
-export const APP_PREFIX = "vea";
+export const APP_PREFIX = "uoquo";
 
 /**
  * 超级管理员角色标识
@@ -17,6 +23,9 @@ export const APP_PREFIX = "vea";
  * 拥有系统最高权限，可以访问所有资源
  */
 export const ROLE_ROOT = "ROOT";
+
+// UOQUO扩展
+export const ROOT_ROLE_ID = "34N7ZK5JENGWEKM1";
 
 /**
  * 平台租户ID
@@ -45,6 +54,7 @@ export const STORAGE_KEYS = {
 
   // ===== 系统相关 =====
   DICT_CACHE: `${APP_PREFIX}:system:dict_cache`,
+  RETURN_CODE_CACHE: `${APP_PREFIX}:system:return_code_cache`,
 
   // ===== UI 设置 =====
   SHOW_TAGS_VIEW: `${APP_PREFIX}:ui:show_tags_view`,

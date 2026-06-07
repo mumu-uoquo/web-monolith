@@ -2,7 +2,14 @@
  * 应用配置
  */
 
-import { LayoutMode, ComponentSize, SidebarColor, ThemeMode, LanguageEnum } from "@/enums";
+import {
+  LayoutMode,
+  ComponentSize,
+  SidebarColor,
+  ThemeMode,
+  LanguageEnum,
+  WatermarkMode,
+} from "@/enums";
 
 const env = import.meta.env;
 const { pkg } = __APP_INFO__;
@@ -35,11 +42,14 @@ export const defaults = {
   showWatermark: false,
   pageSwitchingAnimation: "fade-slide",
   showSettings: true,
+  // 水印模式
+  watermarkMode: WatermarkMode.ACCOUNT,
   watermarkContent: pkg.name,
 } as const;
 
 // ============================================
 // 主题色预设
+// 注意：修改默认主题色时，需要同步修改 src/styles/variables.scss 中的 primary.base 值
 // ============================================
 export const themeColorPresets = [
   "#1677FF",
@@ -48,8 +58,8 @@ export const themeColorPresets = [
   "#22C55E",
   "#FAAD14",
   "#FF4D4F",
-  "#722ED1",
-  "#EB2F96",
-  "#13C2C2",
+  "#722ED1", // 优雅紫 - 高端大气
+  "#EB2F96", // 品红 - 时尚个性
+  "#13C2C2", // 青色 - 科技感
   "#F97316",
 ] as const;
