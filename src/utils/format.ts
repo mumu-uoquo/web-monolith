@@ -84,3 +84,93 @@ export function formatCurrency(amount: number, decimals: number = 2): string {
   const formatted = amount.toFixed(decimals).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
   return "¥" + formatted;
 }
+
+/**
+ * 日期格式化（默认：YYYY-MM-DD HH:mm:ss）
+ */
+export function formatDate(
+  timestamp: any,
+  format = "YYYY-MM-DD HH:mm:ss",
+  defaultValue = ""
+): string {
+  if (!timestamp) {
+    return defaultValue;
+  }
+  // 转换为Date对象
+  const date: Date | null = parseDate(timestamp);
+  if (!date) {
+    return defaultValue;
+  }
+  // 格式化为时间戳
+  if (format === "timestamp") {
+    return String(date.getTime());
+  }
+  // 格式化为其他格式
+  const year = String(date.getFullYear()); // 获取年份 (e.g., 2023)
+  const month = String(date.getMonth() + 1).padStart(2, "0"); // 获取月份 (0-11, 需要加1)
+  const day = String(date.getDate()).padStart(2, "0"); // 获取日期 (1-31)
+  const hours = String(date.getHours()).padStart(2, "0"); // 获取小时 (0-23)
+  const minutes = String(date.getMinutes()).padStart(2, "0"); // 获取分钟 (0-59)
+  const seconds = String(date.getSeconds()).padStart(2, "0"); // 获取分钟 (0-59)
+
+  return format
+    .replace("YYYY", year)
+    .replace("MM", month)
+    .replace("DD", day)
+    .replace("HH", hours)
+    .replace("mm", minutes)
+    .replace("ss", seconds);
+}
+
+/**
+ * 日期解析
+ */
+export function parseDate(timestamp: any, format = "YYYY-MM-DD HH:mm:ss"): Date | null {
+  if (!timestamp) {
+    return null;
+  }
+  // 时间戳处理
+  if (timestamp instanceof Date) {
+    return timestamp as Date;
+  } else if (typeof timestamp === "number") {
+    return new Date(timestamp);
+  }
+  const tt = Number(timestamp);
+  if (tt) {
+    return new Date(tt);
+  }
+  // 其他格式处理
+  const formatTokens = format.match(/(YYYY|MM|DD|HH|mm|ss)/g) || [];
+  const pattern = format
+    .replace(/YYYY/g, "(\\d{4})")
+    .replace(/MM/g, "(\\d{2})")
+    .replace(/DD/g, "(\\d{2})")
+    .replace(/HH/g, "(\\d{2})")
+    .replace(/mm/g, "(\\d{2})")
+    .replace(/ss/g, "(\\d{2})");
+  const regex = new RegExp(`^${pattern}$`);
+  const matches = timestamp.match(regex);
+  if (!matches) {
+    return null;
+  }
+
+  const dateValues = {
+    YYYY: undefined,
+    MM: undefined,
+    DD: undefined,
+    HH: undefined,
+    mm: undefined,
+    ss: undefined,
+  };
+  formatTokens.forEach((key, i) => {
+    dateValues[key] = parseInt(matches[i + 1], 10);
+  });
+  return new Date(
+    dateValues["YYYY"] || new Date().getFullYear(),
+    (dateValues["MM"] || 1) - 1,
+    dateValues["DD"] || 1,
+    dateValues["HH"] || 0,
+    dateValues["mm"] || 0,
+    dateValues["ss"] || 0
+  );
+}
