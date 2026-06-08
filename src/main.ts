@@ -18,7 +18,7 @@ import "animate.css";
 
 // ===== 核心配置 =====
 import { setupDirective } from "@/directives";
-import { setupI18n } from "@/lang";
+import { setupI18n } from "@/plugins/modules/i18n";
 import { setupRouter } from "@/router";
 import { setupStore } from "@/stores";
 

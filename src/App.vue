@@ -14,8 +14,8 @@
 
 <script setup lang="ts">
 import { useAppStore, useSettingsStore } from "@/stores";
-import { appConfig } from "@/settings";
-import { ThemeMode, ComponentSize } from "@/enums";
+import { ThemeMode, ComponentSize, WatermarkMode } from "@/enums";
+import { defaults as defaultSettings } from "@/settings";
 import { formatDate } from "./utils/format";
 
 const appStore = useAppStore();
@@ -24,7 +24,6 @@ const settingsStore = useSettingsStore();
 const locale = computed(() => appStore.locale);
 const size = computed(() => appStore.size as ComponentSize);
 const showWatermark = computed(() => settingsStore.showWatermark);
-const watermarkContent = appConfig.name;
 
 // 明亮/暗黑主题水印字体颜色适配
 const fontColor = computed(() => {

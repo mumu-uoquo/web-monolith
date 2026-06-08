@@ -6,14 +6,15 @@ import axios, {
   type Method,
 } from "axios";
 
-import { useUserStoreHook } from "@/store/modules/user-store";
+import { useUserStoreHook } from "@/stores/user";
 import { ResultEnum } from "@/enums/system/result.enum";
 import type { TokenDto } from "@/api/auth";
 import router from "@/router";
 
 import FileUtil from "./file";
 import { AuthStorage } from "./auth";
-import { encryptMd5, guid } from "./common";
+import { guid } from "./common";
+import { encryptMd5 } from "./crypto";
 
 interface OriginalRequest {
   config: AxiosRequestConfig;

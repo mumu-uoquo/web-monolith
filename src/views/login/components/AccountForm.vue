@@ -1,0 +1,233 @@
+<template>
+  <el-form
+    ref="loginFormRef"
+    :model="loginData"
+    :rules="loginRules"
+    :validate-on-rule-change="false"
+    size="large"
+  >
+    <!-- 用户名 -->
+    <el-form-item prop="account">
+      <el-input v-model.trim="loginData.account" :placeholder="t('login.username')">
+        <template #prefix>
+          <el-icon><User /></el-icon>
+        </template>
+      </el-input>
+    </el-form-item>
+
+    <!-- 密码 -->
+    <el-tooltip :visible="isCapsLock" :content="t('login.capsLock')" placement="right">
+      <el-form-item prop="password">
+        <el-input
+          v-model.trim="loginData.password"
+          :placeholder="t('login.password')"
+          type="password"
+          show-password
+          @focus="handleFocus"
+          @keyup="checkCapsLock"
+          @keyup.enter="handleLoginSubmit"
+        >
+          <template #prefix>
+            <el-icon><Lock /></el-icon>
+          </template>
+        </el-input>
+      </el-form-item>
+    </el-tooltip>
+
+    <!-- 验证码 -->
+    <el-form-item v-if="captchaBase64" prop="captcha">
+      <div flex items-center gap-10px>
+        <el-input
+          v-model.trim="loginData.captcha"
+          :placeholder="t('login.captchaCode')"
+          clearable
+          class="flex-1"
+          @keyup.enter="handleLoginSubmit"
+        >
+          <template #prefix>
+            <div class="i-svg:captcha" />
+          </template>
+        </el-input>
+        <div cursor-pointer h-44px w-140px flex-center @click="getCaptcha">
+          <el-icon v-if="captchLoading" class="is-loading" size="20"><Loading /></el-icon>
+          <img
+            v-else-if="captchaBase64"
+            border-rd-4px
+            w-full
+            h-full
+            block
+            object-cover
+            shadow="[0_0_0_1px_var(--el-border-color)_inset]"
+            :src="captchaBase64"
+            alt="captchaCode"
+            title="点击刷新验证码"
+            @error="getCaptcha"
+          />
+          <el-text v-else type="info" size="small">点击获取验证码</el-text>
+        </div>
+      </div>
+    </el-form-item>
+
+    <div class="flex-x-between w-full">
+      <el-checkbox v-model="loginData.rememberMe">
+        {{ t("login.rememberMe") }}
+      </el-checkbox>
+      <el-link type="primary" underline="never" @click="showForm('resetPwd')">
+        {{ t("login.forgetPassword") }}
+      </el-link>
+    </div>
+
+    <!-- 登录按钮 -->
+    <el-form-item>
+      <el-button :loading="loading" type="primary" class="w-full" @click="handleLoginSubmit">
+        {{ t("login.login") }}
+      </el-button>
+    </el-form-item>
+  </el-form>
+
+  <MfaForm
+    v-model:visible="mfaVisible"
+    :temp-token="mfaTempToken"
+    @mfa-success="emits('on-submit')"
+  />
+</template>
+
+<script setup lang="ts">
+import { User, Lock, Loading } from "@element-plus/icons-vue";
+import { useUserStore } from "@/stores";
+import { encryptPassword } from "@/utils/crypto";
+import { AuthStorage } from "@/utils/auth";
+import AuthAPI, { type UserLoginParam } from "@/api/auth";
+import MfaForm from "./MfaForm.vue";
+
+/* ***************************** 参数定义 ********************************* */
+// 暴露给父级的自定义事件
+const emits = defineEmits(["on-submit"]);
+
+const userStore = useUserStore();
+const loading = ref(false); // 按钮 loading 状态
+const isCapsLock = ref(false); // 是否大写锁定
+const captchaBase64 = ref(); // 验证码图片Base64字符串
+const mfaVisible = ref<boolean>(false); // MFA 弹窗可见状态
+const mfaTempToken = ref<string>(""); // 临时 token
+
+const { t } = useI18n();
+
+/* ***************************** 表单信息 ********************************* */
+// 初始表单数据
+const rememberMe = AuthStorage.getRememberMe();
+const loginData = ref<UserLoginParam>({
+  account: "",
+  password: "",
+  captcha: "",
+  rememberMe,
+});
+// 表单校验规则
+const baseRules = reactive({
+  account: [{ required: true, trigger: "blur", message: t("login.message.username.required") }],
+  password: [
+    { required: true, trigger: "blur", message: t("login.message.password.required") },
+    { min: 6, message: t("login.message.password.min"), trigger: "blur" },
+  ],
+});
+const captchaRule = reactive({
+  captcha: [{ required: true, trigger: "blur", message: t("login.message.captchaCode.required") }],
+});
+// 动态计算登录规则
+const loginRules = computed(() => {
+  if (captchaBase64.value) {
+    // 如果有验证码图片，则验证码必填
+    return { ...baseRules, ...captchaRule };
+  } else {
+    return { ...baseRules };
+  }
+});
+
+/**
+ * 登录表单提交（防抖）
+ */
+const loginFormRef = ref(ElForm);
+const handleLoginSubmit = useDebounceFn(async () => {
+  // 表单校验
+  try {
+    await loginFormRef.value?.validate();
+  } catch {
+    return;
+  }
+  // 登录提交
+  loading.value = true;
+  const reqData = {
+    account: loginData.value.account,
+    password: loginData.value.password,
+    captcha: loginData.value.captcha,
+  };
+  try {
+    reqData.password = await encryptPassword(reqData.password || "");
+    const userDto = await AuthAPI.accountLogin(reqData);
+    AuthStorage.setRememberMe(loginData.value.rememberMe);
+    if (userDto.totpStatus === "enabled") {
+      // 开启双因子认证的，弹窗双因子认证页面
+      mfaTempToken.value = userDto.accessToken || "";
+      mfaVisible.value = true;
+    } else {
+      // 保存用户信息，跳转首页
+      userStore.setUserInfo(userDto);
+      emits("on-submit");
+    }
+  } catch {
+    getCaptcha();
+  } finally {
+    loading.value = false;
+  }
+}, 500);
+
+/**
+ * 获取验证码
+ */
+const captchLoading = ref(false);
+function getCaptcha() {
+  captchLoading.value = true;
+  AuthAPI.getCaptcha(loginData.value)
+    .then((data) => {
+      loginData.value.captcha = "";
+      captchaBase64.value = data;
+    })
+    .catch(() => {
+      // do nothing
+    })
+    .finally(() => (captchLoading.value = false));
+}
+
+/**
+ * 检查输入大小写
+ */
+function checkCapsLock(event: KeyboardEvent) {
+  // 防止浏览器密码自动填充时报错
+  if (event instanceof KeyboardEvent) {
+    isCapsLock.value = event.getModifierState("CapsLock");
+  }
+}
+function handleFocus(_event: FocusEvent) {
+  const handler = (e: KeyboardEvent) => {
+    isCapsLock.value = e.getModifierState("CapsLock");
+    window.removeEventListener("keydown", handler);
+  };
+  window.addEventListener("keydown", handler);
+}
+</script>
+
+<style lang="scss" scoped>
+/*
+.input-wrapper {
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+.captcha-img {
+  width: 120px;
+  height: 30px;
+  margin: 4px;
+  cursor: pointer;
+}
+  */
+</style>

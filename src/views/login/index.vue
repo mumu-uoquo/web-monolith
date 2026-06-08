@@ -15,32 +15,7 @@
 
     <div class="login-page__body">
       <section class="login-hero">
-        <div class="login-hero__badge">
-          <span class="login-hero__dot" />
-          Enterprise Ready
-        </div>
-        <h1 class="login-hero__title">企业级管理系统</h1>
-        <p class="login-hero__subtitle">
-          提供安全、高效、可扩展的管理解决方案，助力企业数字化转型与业务增长。
-        </p>
-        <ul class="login-hero__features">
-          <li>
-            <span>✓</span>
-            统一身份认证与权限管理
-          </li>
-          <li>
-            <span>✓</span>
-            支持多租户模式与租户隔离
-          </li>
-          <li>
-            <span>✓</span>
-            数据安全与操作审计
-          </li>
-          <li>
-            <span>✓</span>
-            灵活扩展与高可用架构
-          </li>
-        </ul>
+        <Hero />
       </section>
 
       <section class="login-card">
@@ -67,91 +42,8 @@
         <transition name="fade-slide" mode="out-in">
           <div v-if="component === 'login'" key="login" class="login-card__form">
             <h3 class="login-form__title text-center">{{ t("login.login") }}</h3>
-            <el-form
-              ref="loginFormRef"
-              :model="loginFormData"
-              :rules="loginRules"
-              size="large"
-              :validate-on-rule-change="false"
-            >
-              <el-form-item prop="username">
-                <el-input v-model.trim="loginFormData.username" :placeholder="t('login.username')">
-                  <template #prefix>
-                    <el-icon><User /></el-icon>
-                  </template>
-                </el-input>
-              </el-form-item>
 
-              <el-tooltip :visible="isCapsLock" :content="t('login.capsLock')" placement="right">
-                <el-form-item prop="password">
-                  <el-input
-                    v-model.trim="loginFormData.password"
-                    :placeholder="t('login.password')"
-                    type="password"
-                    show-password
-                    @keyup="checkCapsLock"
-                    @keyup.enter="handleLoginSubmit"
-                  >
-                    <template #prefix>
-                      <el-icon><Lock /></el-icon>
-                    </template>
-                  </el-input>
-                </el-form-item>
-              </el-tooltip>
-
-              <el-form-item prop="captchaCode">
-                <div flex items-center gap-10px>
-                  <el-input
-                    v-model.trim="loginFormData.captchaCode"
-                    :placeholder="t('login.captchaCode')"
-                    clearable
-                    class="flex-1"
-                    @keyup.enter="handleLoginSubmit"
-                  >
-                    <template #prefix>
-                      <div class="i-svg:captcha" />
-                    </template>
-                  </el-input>
-                  <div cursor-pointer h-44px w-140px flex-center @click="getCaptcha">
-                    <el-icon v-if="codeLoading" class="is-loading" size="20"><Loading /></el-icon>
-                    <img
-                      v-else-if="captchaBase64"
-                      border-rd-4px
-                      w-full
-                      h-full
-                      block
-                      object-cover
-                      shadow="[0_0_0_1px_var(--el-border-color)_inset]"
-                      :src="captchaBase64"
-                      alt="captchaCode"
-                      title="点击刷新验证码"
-                      @error="getCaptcha"
-                    />
-                    <el-text v-else type="info" size="small">点击获取验证码</el-text>
-                  </div>
-                </div>
-              </el-form-item>
-
-              <div class="flex-x-between w-full">
-                <el-checkbox v-model="loginFormData.rememberMe">
-                  {{ t("login.rememberMe") }}
-                </el-checkbox>
-                <el-link type="primary" underline="never" @click="showForm('resetPwd')">
-                  {{ t("login.forgetPassword") }}
-                </el-link>
-              </div>
-
-              <el-form-item>
-                <el-button
-                  :loading="loading"
-                  type="primary"
-                  class="w-full"
-                  @click="handleLoginSubmit"
-                >
-                  {{ t("login.login") }}
-                </el-button>
-              </el-form-item>
-            </el-form>
+            <AccountForm ref="accountFormRef" @on-submit="handleLoginSuccess" />
 
             <div flex-center gap-10px>
               <el-text size="default">{{ t("login.noAccount") }}</el-text>
@@ -160,6 +52,7 @@
               </el-link>
             </div>
 
+            <!-- 第三方登录 -->
             <div class="login-form__social">
               <div class="social-divider">
                 <span class="social-divider__line" />
@@ -196,110 +89,98 @@
 </template>
 
 <script setup lang="ts">
-import { User, Lock, Loading } from "@element-plus/icons-vue";
 import type { FormInstance } from "element-plus";
-import AuthAPI from "@/api/auth";
-import type { LoginRequest } from "@/api/auth";
 import router from "@/router";
-import { useUserStore } from "@/stores";
+import { useSettingsStore, useUserStore, useDictStore } from "@/stores";
 import { AuthStorage } from "@/utils/auth";
+
 import logo from "@/assets/images/logo.png";
 import { appConfig } from "@/settings";
+
 import ThemeSwitch from "@/components/ThemeSwitch/index.vue";
+import Hero from "./components/Hero.vue";
+import AccountForm from "./components/AccountForm.vue";
 
-type LayoutMap = "login" | "register" | "resetPwd";
-
+/* ***************************** 参数定义 ********************************* */
 const { t } = useI18n();
-const userStore = useUserStore();
 const route = useRoute();
-const component = ref<LayoutMap>("login");
-
+const userStore = useUserStore();
+const dictStore = useDictStore();
+const settingsStore = useSettingsStore();
 const tenantEnabled = appConfig.tenantEnabled;
 
+/* ***************************** 操作函数 ********************************* */
+/**
+ * 登录成功后的跳转
+ */
+async function handleLoginSuccess() {
+  // 需要在路由跳转前加载字典数据，否则会出现字典数据未加载完成导致页面渲染异常
+  // 并行执行
+  // await Promise.all([userStore.getUserInfo(), dictStore.loadDictionary(null)]);
+  // 20260410: 字典列表改为异步加载
+  dictStore.loadDictionary(null);
+  // 20260517：登录时已经将用户信息缓存本地，没必要再次获取
+  // await userStore.getUserInfo();
+  // 跳转到登录前的页面
+  const { path, queryParams } = parseRedirect();
+  router.push({ path, query: queryParams });
+}
+
+/**
+ * 解析 redirect 字符串 为 path 和  queryParams
+ *
+ * @returns { path: string, queryParams: Record<string, string> } 解析后的 path 和 queryParams
+ */
+function parseRedirect(): {
+  path: string;
+  queryParams: Record<string, string>;
+} {
+  const query: LocationQuery = route.query;
+  const redirect = (query.redirect as string) ?? "/";
+
+  const url = new URL(redirect, window.location.origin);
+  const path = url.pathname;
+  const queryParams: Record<string, string> = {};
+
+  url.searchParams.forEach((value, key) => {
+    queryParams[key] = value;
+  });
+
+  return { path, queryParams };
+}
+
+/**
+ * 页面名称，需与路由中保持一致
+ */
+defineOptions({
+  name: "Login",
+  inheritAttrs: false,
+});
+/**
+ * 页面加载时
+ */
+onMounted(() => {
+  AuthStorage.loadDeviceId();
+  // 进入登录页面时，默认清除
+  userStore.resetAllState();
+});
+
+const component = ref<LayoutMap>("login");
 const formComponents = {
   register: defineAsyncComponent(() => import("./components/Register.vue")),
   resetPwd: defineAsyncComponent(() => import("./components/ResetPwd.vue")),
 };
 
-const loginFormRef = ref<FormInstance>();
-const loading = ref(false);
-const isCapsLock = ref(false);
-const captchaBase64 = ref<string>();
-const codeLoading = ref(false);
-
-const rememberMe = AuthStorage.getRememberMe();
-const loginFormData = ref<LoginRequest>({
-  username: "admin",
-  password: "123456",
-  captchaId: "",
-  captchaCode: "",
-  rememberMe,
-});
-
-const loginRules = computed(() => ({
-  username: [{ required: true, trigger: "blur", message: t("login.message.username.required") }],
-  password: [
-    { required: true, trigger: "blur", message: t("login.message.password.required") },
-    { min: 6, message: t("login.message.password.min"), trigger: "blur" },
-  ],
-  captchaCode: [
-    { required: true, trigger: "blur", message: t("login.message.captchaCode.required") },
-  ],
-}));
-
-function getCaptcha() {
-  codeLoading.value = true;
-  AuthAPI.getCaptcha()
-    .then((data) => {
-      loginFormData.value.captchaId = data.captchaId;
-      captchaBase64.value = data.captchaBase64;
-    })
-    .finally(() => (codeLoading.value = false));
-}
-
-async function handleLoginSubmit() {
-  const valid = await loginFormRef.value?.validate().then(
-    () => true,
-    () => false
-  );
-  if (!valid) return;
-
-  loading.value = true;
-  try {
-    await userStore.login(loginFormData.value).then(
-      async () => {
-        const redirectPath = (route.query.redirect as string) || "/";
-        await router.push(decodeURIComponent(redirectPath));
-      },
-      () => {
-        getCaptcha();
-      }
-    );
-  } finally {
-    loading.value = false;
-  }
-}
-
-function checkCapsLock(event: KeyboardEvent) {
-  if (event instanceof KeyboardEvent) {
-    isCapsLock.value = event.getModifierState("CapsLock");
-  }
-}
-
 function showForm(type: "register" | "resetPwd") {
   component.value = type;
 }
-
-onMounted(() => getCaptcha());
 </script>
 
 <style lang="scss" scoped>
 .login-page {
   --login-hero-text: #1a1a2e;
-  --login-hero-sub: #6b7280;
   --login-card-bg: rgb(255 255 255 / 90%);
   --login-card-border: rgb(0 0 0 / 6%);
-
   position: relative;
   display: flex;
   flex-direction: column;
@@ -383,69 +264,6 @@ onMounted(() => getCaptcha());
   padding: clamp(1rem, 2vw, 2rem);
   color: var(--login-hero-text);
   animation: heroIn 0.8s ease-out;
-}
-
-.login-hero__badge {
-  display: inline-flex;
-  gap: 8px;
-  align-items: center;
-  width: fit-content;
-  padding: 5px 12px;
-  font-size: 0.78rem;
-  font-weight: 500;
-  color: var(--el-color-primary);
-  letter-spacing: 0.06em;
-  background: var(--el-color-primary-light-9);
-  border-radius: 999px;
-}
-
-.login-hero__dot {
-  width: 7px;
-  height: 7px;
-  background: var(--el-color-primary);
-  border-radius: 50%;
-}
-
-.login-hero__title {
-  margin: 1.25rem 0 0.5rem;
-  font-size: clamp(1.75rem, 3.5vw, 2.25rem);
-  font-weight: 700;
-  line-height: 1.25;
-  letter-spacing: -0.02em;
-}
-
-.login-hero__subtitle {
-  margin-bottom: 1.5rem;
-  font-size: 0.95rem;
-  line-height: 1.7;
-  color: var(--login-hero-sub);
-}
-
-.login-hero__features {
-  display: grid;
-  gap: 8px;
-  padding: 0;
-  margin: 0;
-  list-style: none;
-
-  li {
-    display: flex;
-    gap: 10px;
-    align-items: center;
-    padding: 10px 14px;
-    font-size: 0.9rem;
-    font-weight: 500;
-    background: var(--login-card-bg);
-    border: 1px solid var(--login-card-border);
-    border-radius: 10px;
-    backdrop-filter: blur(4px);
-
-    span {
-      flex-shrink: 0;
-      font-weight: 700;
-      color: var(--el-color-primary);
-    }
-  }
 }
 
 .login-card {

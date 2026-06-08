@@ -1,6 +1,6 @@
 import axios, { type InternalAxiosRequestConfig, type AxiosResponse } from "axios";
 import qs from "qs";
-import { ApiCodeEnum } from "@/enums/api";
+import { ResultEnum } from "@/enums";
 import { useUserStoreHook } from "@/stores/user";
 import { usePermissionStoreHook } from "@/stores/permission";
 import { AuthStorage, redirectToLogin } from "@/utils/auth";
@@ -44,7 +44,7 @@ http.interceptors.response.use(
 
     const { code, data, msg } = response.data;
 
-    if (code === ApiCodeEnum.SUCCESS) {
+    if (code === ResultEnum.SUCCESS) {
       return data;
     }
 
@@ -63,7 +63,7 @@ http.interceptors.response.use(
     const { code, msg } = response.data as ApiResponse;
 
     // Token 过期：尝试刷新 token 后自动重试一次
-    if (code === ApiCodeEnum.ACCESS_TOKEN_INVALID) {
+    if (code === ResultEnum.TOKEN_INVALID) {
       // 已重试过，直接跳登录
       if (retriedConfigs.has(config)) {
         await redirectToLogin("登录已过期，请重新登录");
@@ -74,7 +74,7 @@ http.interceptors.response.use(
 
       try {
         const userStore = useUserStoreHook();
-        await userStore.refreshTokenOnce();
+        await userStore.refreshToken();
 
         const token = AuthStorage.getAccessToken();
         if (token) {
@@ -89,18 +89,18 @@ http.interceptors.response.use(
     }
 
     // Refresh token 失效：无法续期，跳转登录
-    if (code === ApiCodeEnum.REFRESH_TOKEN_INVALID) {
+    if (code === ResultEnum.TOKEN_INVALID) {
       await redirectToLogin("登录已过期，请重新登录", false);
       return Promise.reject(new Error("Token Invalid"));
     }
 
-    // 权限不足：刷新权限快照后提示
-    if (code === ApiCodeEnum.PERMISSION_DENIED) {
-      const permissionStore = usePermissionStoreHook();
-      await permissionStore.reloadPermissionSnapshotOnce();
-      ElMessage.error(msg || "权限不足");
-      return Promise.reject(new Error(msg || "权限不足"));
-    }
+    // // 权限不足：刷新权限快照后提示
+    // if (code === ResultEnum.PERMISSION_DENIED) {
+    //   const permissionStore = usePermissionStoreHook();
+    //   await permissionStore.reloadPermissionSnapshotOnce();
+    //   ElMessage.error(msg || "权限不足");
+    //   return Promise.reject(new Error(msg || "权限不足"));
+    // }
 
     ElMessage.error(msg || "请求失败");
     return Promise.reject(new Error(msg || "请求失败"));
