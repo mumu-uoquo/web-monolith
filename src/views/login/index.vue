@@ -43,7 +43,8 @@
           <div v-if="component === 'login'" key="login" class="login-card__form">
             <h3 class="login-form__title text-center">{{ t("login.login") }}</h3>
 
-            <AccountForm ref="accountFormRef" @on-submit="handleLoginSuccess" />
+            <AccountForm @on-submit="handleLoginSuccess" @on-show-form="showForm" />
+            <!-- 用 component 实现多种登录模式的切换 -->
 
             <div flex-center gap-10px>
               <el-text size="default">{{ t("login.noAccount") }}</el-text>
@@ -148,7 +149,18 @@ function parseRedirect(): {
 
   return { path, queryParams };
 }
+/* ***************************** 操作函数 ********************************* */
+const component = ref<LayoutMap>("login");
+const formComponents = {
+  register: defineAsyncComponent(() => import("./components/Register.vue")),
+  resetPwd: defineAsyncComponent(() => import("./components/ResetPwd.vue")),
+};
 
+function showForm(type: "register" | "resetPwd") {
+  component.value = type;
+}
+
+/* ***************************** 监听器等（需放在最后） ********************************* */
 /**
  * 页面名称，需与路由中保持一致
  */
@@ -164,16 +176,6 @@ onMounted(() => {
   // 进入登录页面时，默认清除
   userStore.resetAllState();
 });
-
-const component = ref<LayoutMap>("login");
-const formComponents = {
-  register: defineAsyncComponent(() => import("./components/Register.vue")),
-  resetPwd: defineAsyncComponent(() => import("./components/ResetPwd.vue")),
-};
-
-function showForm(type: "register" | "resetPwd") {
-  component.value = type;
-}
 </script>
 
 <style lang="scss" scoped>

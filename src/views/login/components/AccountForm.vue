@@ -23,8 +23,6 @@
           :placeholder="t('login.password')"
           type="password"
           show-password
-          @focus="handleFocus"
-          @keyup="checkCapsLock"
           @keyup.enter="handleLoginSubmit"
         >
           <template #prefix>
@@ -102,7 +100,7 @@ import MfaForm from "./MfaForm.vue";
 
 /* ***************************** 参数定义 ********************************* */
 // 暴露给父级的自定义事件
-const emits = defineEmits(["on-submit"]);
+const emits = defineEmits(["on-submit", "on-show-form"]);
 
 const userStore = useUserStore();
 const loading = ref(false); // 按钮 loading 状态
@@ -112,6 +110,13 @@ const mfaVisible = ref<boolean>(false); // MFA 弹窗可见状态
 const mfaTempToken = ref<string>(""); // 临时 token
 
 const { t } = useI18n();
+
+/**
+ * 切换到其他表单（忘记密码）
+ */
+function showForm(type: "register" | "resetPwd") {
+  emits("on-show-form", type);
+}
 
 /* ***************************** 表单信息 ********************************* */
 // 初始表单数据
@@ -198,22 +203,22 @@ function getCaptcha() {
     .finally(() => (captchLoading.value = false));
 }
 
-/**
- * 检查输入大小写
- */
-function checkCapsLock(event: KeyboardEvent) {
-  // 防止浏览器密码自动填充时报错
-  if (event instanceof KeyboardEvent) {
-    isCapsLock.value = event.getModifierState("CapsLock");
-  }
-}
-function handleFocus(_event: FocusEvent) {
-  const handler = (e: KeyboardEvent) => {
-    isCapsLock.value = e.getModifierState("CapsLock");
-    window.removeEventListener("keydown", handler);
-  };
-  window.addEventListener("keydown", handler);
-}
+// 全局监听 mousedown 和 keydown，实时同步 CapsLock 状态
+// mousedown 早于 focus 触发，能捕获触发 focus 的那次点击
+const onMousedown = (e: MouseEvent) => {
+  isCapsLock.value = e.getModifierState("CapsLock");
+};
+const onKeydown = (e: KeyboardEvent) => {
+  isCapsLock.value = e.getModifierState("CapsLock");
+};
+onMounted(() => {
+  window.addEventListener("mousedown", onMousedown);
+  window.addEventListener("keydown", onKeydown);
+});
+onUnmounted(() => {
+  window.removeEventListener("mousedown", onMousedown);
+  window.removeEventListener("keydown", onKeydown);
+});
 </script>
 
 <style lang="scss" scoped>
