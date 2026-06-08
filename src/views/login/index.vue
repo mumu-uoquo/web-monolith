@@ -69,14 +69,16 @@
             </div>
           </div>
 
+          <div v-else-if="component === 'mfa'" key="mfa" class="login-card__form">
+            <MfaForm :temp-token="mfaTempToken" @mfa-success="handleLoginSuccess" />
+          </div>
+
           <component
             :is="formComponents[component]"
             v-else
             :key="component"
             class="login-card__form"
-            :temp-token="mfaTempToken"
             @update:model-value="component = $event"
-            @mfa-success="handleLoginSuccess"
           />
         </transition>
 
@@ -103,6 +105,7 @@ import { appConfig } from "@/settings";
 import ThemeSwitch from "@/components/ThemeSwitch/index.vue";
 import Hero from "./components/Hero.vue";
 import AccountForm from "./components/AccountForm.vue";
+import MfaForm from "./components/MfaForm.vue";
 
 /* ***************************** 参数定义 ********************************* */
 const { t } = useI18n();
@@ -182,6 +185,7 @@ onMounted(() => {
   AuthStorage.loadDeviceId();
   // 进入登录页面时，默认清除
   userStore.resetAllState();
+  // TODO 加载系统配置
 });
 </script>
 
