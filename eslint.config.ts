@@ -160,10 +160,13 @@ export default [
       "vue/no-v-html": "off",
       "vue/require-default-prop": "off",
       "vue/require-explicit-emits": "error",
-      "vue/no-unused-vars": [
-        "error",
+      "vue/no-unused-vars": "off",
+      "@typescript-eslint/no-unused-vars": [
+        "warn",
         {
-          ignorePattern: "^_", // 忽略以下划线开头的变量
+          argsIgnorePattern: "^_",
+          varsIgnorePattern: "^_",
+          caughtErrorsIgnorePattern: "^_",
         },
       ],
       "vue/no-mutating-props": "off",
@@ -212,14 +215,7 @@ export default [
       "@typescript-eslint/no-empty-object-type": "off",
       "@typescript-eslint/ban-ts-comment": "off",
       "@typescript-eslint/no-non-null-assertion": "off",
-      "@typescript-eslint/no-unused-vars": [
-        "warn",
-        {
-          argsIgnorePattern: "^_",
-          varsIgnorePattern: "^_",
-          caughtErrorsIgnorePattern: "^_",
-        },
-      ],
+      "@typescript-eslint/no-unused-vars": "off",
       "@typescript-eslint/no-unused-expressions": "warn", // 降级为警告
       "@typescript-eslint/consistent-type-imports": "off", // 关闭强制使用type import
       "@typescript-eslint/no-import-type-side-effects": "error",

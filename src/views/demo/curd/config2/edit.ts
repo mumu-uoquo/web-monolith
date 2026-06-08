@@ -1,5 +1,5 @@
 import type { IModalConfig } from "@/components/CURD/types";
-import { DeviceEnum } from "@/enums/settings";
+import { DeviceEnum } from "@/enums/settings/animation.enum";
 import { useAppStore } from "@/stores";
 
 const modalConfig: IModalConfig = {

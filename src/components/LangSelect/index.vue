@@ -18,7 +18,7 @@
 
 <script setup lang="ts">
 import { useAppStore } from "@/stores/app";
-import { LanguageEnum } from "@/enums/settings";
+import { localesConfigs } from "@/plugins/modules/i18n";
 
 defineProps({
   size: {
@@ -27,10 +27,11 @@ defineProps({
   },
 });
 
-const langOptions = [
-  { label: "中文", value: LanguageEnum.ZH_CN },
-  { label: "English", value: LanguageEnum.EN },
-];
+interface LangOptions {
+  label: string;
+  value: string;
+}
+const langOptions = ref<LangOptions[]>([]);
 
 const appStore = useAppStore();
 const { locale, t } = useI18n();
@@ -38,7 +39,7 @@ const { locale, t } = useI18n();
 /**
  * 处理语言切换
  *
- * @param lang  语言（zh-cn、en�?
+ * @param lang  语言（zh-CN、en）
  */
 function handleLanguageChange(lang: string) {
   locale.value = lang;
@@ -46,4 +47,18 @@ function handleLanguageChange(lang: string) {
 
   ElMessage.success(t("langSelect.message.success"));
 }
+
+onMounted(() => {
+  // 根据i18n配置生成语言选项
+  langOptions.value = Object.entries(localesConfigs)
+    .filter(([_key, value]: any) => {
+      return value.langOptions;
+    })
+    .map(([_key, value]: any) => {
+      return {
+        label: value.langOptions.label,
+        value: value.langOptions.value,
+      } as LangOptions;
+    });
+});
 </script>

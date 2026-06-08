@@ -16,6 +16,7 @@
 import { useAppStore, useSettingsStore } from "@/stores";
 import { appConfig } from "@/settings";
 import { ThemeMode, ComponentSize } from "@/enums";
+import { formatDate } from "./utils/format";
 
 const appStore = useAppStore();
 const settingsStore = useSettingsStore();
@@ -30,5 +31,80 @@ const fontColor = computed(() => {
   return settingsStore.resolvedTheme === ThemeMode.DARK
     ? "rgba(255, 255, 255, .15)"
     : "rgba(0, 0, 0, .15)";
+});
+
+/* ***************************** 水印内容 ********************************* */
+/**
+ * 水印内容
+ * 关键：创建响应式的用户名和时间戳变量
+ */
+const timestamp = ref(Date.now());
+const watermarkContent = computed(() => {
+  // console.log("刷新水印：watermarkContent", Date.now(), settingsStore.showWatermark, defaultSettings.watermarkMode, userStore.userInfo.userName);
+  // 不开启水印
+  if (!settingsStore.showWatermark || defaultSettings.watermarkMode === WatermarkMode.DISABLE) {
+    return "";
+  }
+  // 如果已经登录，则优先显示用户名
+  if (userStore.userInfo.userName) {
+    if (defaultSettings.watermarkMode === WatermarkMode.ACCOUNT) {
+      return `${userStore.userInfo.userName} ${userStore.userInfo.phone}`;
+    } else if (defaultSettings.watermarkMode === WatermarkMode.ACCOUNT_TIME) {
+      return `${userStore.userInfo.userName} ${formatDate(timestamp.value)}`;
+    }
+  }
+  // 默认显示系统名称
+  return defaultSettings.watermarkContent;
+});
+
+/**
+ * 刷新水印
+ * 通过改变响应式数据触发重新计算
+ */
+const refreshWatermark = () => {
+  // console.log("刷新水印：refreshWatermark", Date.now(), username.value, userStore.userInfo.userName);
+  timestamp.value = Date.now();
+};
+
+/**
+ * 处理更新间隔变化
+ */
+let timer: NodeJS.Timeout | null = null;
+const handleIntervalChange = (interval: number) => {
+  // 清除之前的定时器
+  if (timer) {
+    clearInterval(timer);
+    timer = null;
+  }
+  // 设置新的定时器
+  if (interval > 0) {
+    timer = setInterval(() => {
+      refreshWatermark();
+    }, interval);
+  }
+};
+
+/* ***************************** 监听器等（需放在最后） ********************************* */
+/**
+ * 组件挂载时
+ */
+onMounted(() => {
+  if (timer) {
+    clearInterval(timer);
+  }
+  // 立即刷新水印
+  refreshWatermark();
+  // 每10秒刷新一次水印
+  if (defaultSettings.watermarkMode === WatermarkMode.ACCOUNT_TIME) {
+    handleIntervalChange(10000);
+  }
+});
+/**
+ * 组件卸载时清理
+ */
+onUnmounted(() => {
+  if (timer) {
+    clearInterval(timer);
+  }
 });
 </script>

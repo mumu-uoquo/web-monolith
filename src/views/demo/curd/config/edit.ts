@@ -1,7 +1,7 @@
 import UserAPI from "@/api/system/user";
 import type { UserForm } from "@/api/system/user";
 import type { IModalConfig } from "@/components/CURD/types";
-import { DeviceEnum } from "@/enums/settings";
+import { DeviceEnum } from "@/enums/settings/animation.enum";
 import { useAppStore } from "@/stores";
 import { deptArr, roleArr } from "./options";
 
