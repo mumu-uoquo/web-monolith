@@ -1,12 +1,7 @@
 <template>
-  <el-dialog
-    :model-value="visible"
-    title="MFA 验证"
-    width="400px"
-    :close-on-click-modal="true"
-    @close="handleClose"
-  >
-    <el-form ref="mfaFormRef" :model="formData" :rules="rules">
+  <div>
+    <h3 text-center m-0 mb-20px>MFA 验证</h3>
+    <el-form ref="mfaFormRef" :model="formData" :rules="rules" size="large">
       <el-form-item prop="totpCode">
         <el-input
           v-model="totpCode"
@@ -17,12 +12,18 @@
         />
       </el-form-item>
       <el-text v-if="errorMsg" type="danger">{{ errorMsg }}</el-text>
+      <el-form-item>
+        <el-button type="primary" class="w-full" :loading="loading" @click="handleSubmit">
+          验证
+        </el-button>
+      </el-form-item>
     </el-form>
-    <template #footer>
-      <el-button @click="handleClose">取消</el-button>
-      <el-button type="primary" :loading="loading" @click="handleSubmit">验证</el-button>
-    </template>
-  </el-dialog>
+
+    <div flex-center gap-10px>
+      <el-text size="default">验证码有误？</el-text>
+      <el-link type="primary" underline="never" @click="toLogin">返回重新登录</el-link>
+    </div>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -31,12 +32,11 @@ import { useUserStore } from "@/stores";
 
 /* ***************************** 参数定义 ********************************* */
 const props = defineProps<{
-  visible: boolean;
   tempToken: string;
 }>();
 
 const emits = defineEmits<{
-  "update:visible": [value: boolean];
+  "update:modelValue": [value: string];
   "mfa-success": [];
 }>();
 
@@ -47,9 +47,7 @@ const totpCode = ref<string>("");
 const loading = ref<boolean>(false);
 const errorMsg = ref<string>("");
 
-const formData = computed(() => ({
-  totpCode: totpCode.value,
-}));
+const formData = computed(() => ({ totpCode: totpCode.value }));
 
 const rules = {
   totpCode: [
@@ -61,52 +59,35 @@ const rules = {
 const mfaFormRef = ref();
 
 /* ***************************** 方法定义 ********************************* */
-/** 输入过滤 - 仅允许数字，过滤非数字字符 */
+/** 输入过滤：仅允许数字 */
 function handleInput(value: string) {
   totpCode.value = value.replace(/\D/g, "");
 }
 
 /** 提交验证 */
 async function handleSubmit() {
-  // 表单校验
   try {
     await mfaFormRef.value.validate();
   } catch {
     return;
   }
-  // 防止重复提交
   loading.value = true;
   try {
     const data = await AuthAPI.mfaLogin({ tempToken: props.tempToken, totpCode: totpCode.value });
-    // 成功：保存用户信息并通知父组件
     userStore.setUserInfo(data);
-    // emits("update:visible", false);
     emits("mfa-success");
   } catch (error: any) {
-    // 失败：显示错误信息，清空输入，恢复按钮
     totpCode.value = "";
     errorMsg.value = error;
     loading.value = false;
   }
 }
 
-/** 关闭弹窗 */
-function handleClose() {
-  emits("update:visible", false);
+/** 返回登录 */
+function toLogin() {
   totpCode.value = "";
   errorMsg.value = "";
   loading.value = false;
+  emits("update:modelValue", "login");
 }
-
-/* ***************************** 侦听器 ********************************* */
-watch(
-  () => props.visible,
-  (newVal) => {
-    if (newVal) {
-      totpCode.value = "";
-      errorMsg.value = "";
-      loading.value = false;
-    }
-  }
-);
 </script>

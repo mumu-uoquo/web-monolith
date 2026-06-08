@@ -74,7 +74,9 @@
             v-else
             :key="component"
             class="login-card__form"
+            :temp-token="mfaTempToken"
             @update:model-value="component = $event"
+            @mfa-success="handleLoginSuccess"
           />
         </transition>
 
@@ -151,12 +153,17 @@ function parseRedirect(): {
 }
 /* ***************************** 操作函数 ********************************* */
 const component = ref<LayoutMap>("login");
+const mfaTempToken = ref<string>(""); // MFA 临时 token
 const formComponents = {
   register: defineAsyncComponent(() => import("./components/Register.vue")),
   resetPwd: defineAsyncComponent(() => import("./components/ResetPwd.vue")),
+  mfa: defineAsyncComponent(() => import("./components/MfaForm.vue")),
 };
 
-function showForm(type: "register" | "resetPwd") {
+function showForm(type: "register" | "resetPwd" | "mfa", payload?: string) {
+  if (type === "mfa" && payload) {
+    mfaTempToken.value = payload;
+  }
   component.value = type;
 }
 

@@ -82,12 +82,6 @@
       </el-button>
     </el-form-item>
   </el-form>
-
-  <MfaForm
-    v-model:visible="mfaVisible"
-    :temp-token="mfaTempToken"
-    @mfa-success="emits('on-submit')"
-  />
 </template>
 
 <script setup lang="ts">
@@ -96,7 +90,6 @@ import { useUserStore } from "@/stores";
 import { encryptPassword } from "@/utils/crypto";
 import { AuthStorage } from "@/utils/auth";
 import AuthAPI, { type UserLoginParam } from "@/api/auth";
-import MfaForm from "./MfaForm.vue";
 
 /* ***************************** 参数定义 ********************************* */
 // 暴露给父级的自定义事件
@@ -106,16 +99,14 @@ const userStore = useUserStore();
 const loading = ref(false); // 按钮 loading 状态
 const isCapsLock = ref(false); // 是否大写锁定
 const captchaBase64 = ref(); // 验证码图片Base64字符串
-const mfaVisible = ref<boolean>(false); // MFA 弹窗可见状态
-const mfaTempToken = ref<string>(""); // 临时 token
 
 const { t } = useI18n();
 
 /**
- * 切换到其他表单（忘记密码）
+ * 切换到其他表单（注册 / 忘记密码 / MFA）
  */
-function showForm(type: "register" | "resetPwd") {
-  emits("on-show-form", type);
+function showForm(type: "register" | "resetPwd" | "mfa", payload?: string) {
+  emits("on-show-form", type, payload);
 }
 
 /* ***************************** 表单信息 ********************************* */
@@ -171,9 +162,8 @@ const handleLoginSubmit = useDebounceFn(async () => {
     const userDto = await AuthAPI.accountLogin(reqData);
     AuthStorage.setRememberMe(loginData.value.rememberMe);
     if (userDto.totpStatus === "enabled") {
-      // 开启双因子认证的，弹窗双因子认证页面
-      mfaTempToken.value = userDto.accessToken || "";
-      mfaVisible.value = true;
+      // 开启双因子认证，切换到 MFA 表单
+      showForm("mfa", userDto.accessToken || "");
     } else {
       // 保存用户信息，跳转首页
       userStore.setUserInfo(userDto);
