@@ -1,13 +1,9 @@
-import type {
-  Router,
-  NavigationGuardNext,
-  RouteLocationNormalized,
-  RouteRecordRaw,
-} from "vue-router";
+import type { Router, RouteLocationNormalized, RouteRecordRaw } from "vue-router";
 import NProgress from "@/plugins/nprogress";
+import router from "@/router";
 import { usePermissionStore, useUserStore } from "@/stores";
 
-export function setupPermission(router: Router) {
+export function setupPermissionGuard() {
   // 白名单（无需登录的页面：登录页、全屏错误页）
   const whiteList = ["/login", "/403", "/404"];
 
@@ -20,62 +16,57 @@ export function setupPermission(router: Router) {
    *
    * 注意：异步操作时必须使用 next(); 不能直接 return true;
    */
-  router.beforeEach(
-    async (
-      to: RouteLocationNormalized,
-      from: RouteLocationNormalized,
-      next: NavigationGuardNext
-    ) => {
-      const permissionStore = usePermissionStore();
-      const userStore = useUserStore();
-      NProgress.start();
+  router.beforeEach(async (to: RouteLocationNormalized, from: RouteLocationNormalized) => {
+    const permissionStore = usePermissionStore();
+    const userStore = useUserStore();
+    NProgress.start();
 
-      try {
-        // 白名单处理
-        if (whiteList.includes(to.path) || to.path.startsWith("/visitor/")) {
-          return next();
-        }
-        // 使用 store 暴露的登录态，便于后续扩展（如基于过期时间等）
-        const isLoggedIn = userStore.isLoggedIn();
-        // 1. 未登录处理
-        if (!isLoggedIn) {
-          throw new Error("未登录，无权访问，请登录后再试");
-        }
-        // 2. 已登录且访问登录页，重定向到首页
-        if (to.path === "/login") {
-          return next({ path: "/" });
-        }
-
-        // 3. 已登录用户的正常访问
-        if (!permissionStore.isDynamicRoutesGenerated) {
-          // 路由未生成则生成
-          const userInfo = await userStore.getUserInfo();
-          if (!userInfo.currentRoleId) {
-            throw new Error("无用户角色信息，请重新登录");
-          }
-          // 获取登录用户角色的授权信息
-          const dynamicRoutes = await permissionStore.generateRoutes(userInfo.currentRoleId);
-          dynamicRoutes.forEach((route: RouteRecordRaw) => {
-            router.addRoute(route);
-          });
-
-          return next({ ...to, replace: true });
-        }
-
-        // 检查路由是否存在
-        if (to.matched.length === 0) {
-          return next({ path: "/error/404" });
-        } else {
-          return next();
-        }
-      } catch (error) {
-        console.error("❌ Route guard error:", error);
-        return redirectToLogin(to, from, next);
-      } finally {
-        NProgress.done();
+    try {
+      // 白名单处理
+      if (whiteList.includes(to.path) || to.path.startsWith("/visitor/")) {
+        return true;
       }
+
+      const isLoggedIn = userStore.isLoggedIn();
+
+      // 1. 未登录处理
+      if (!isLoggedIn) {
+        throw new Error("未登录，无权访问，请登录后再试");
+      }
+
+      // 2. 已登录且访问登录页，重定向到首页
+      if (to.path === "/login") {
+        return { path: "/" };
+      }
+
+      // 3. 已登录用户的正常访问
+      if (!permissionStore.isDynamicRoutesGenerated) {
+        // 路由未生成则生成
+        const userInfo = await userStore.getUserInfo();
+        if (!userInfo.currentRoleId) {
+          throw new Error("无用户角色信息，请重新登录");
+        }
+        // 获取登录用户角色的授权信息
+        const dynamicRoutes = await permissionStore.generateRoutes(userInfo.currentRoleId);
+        dynamicRoutes.forEach((route: RouteRecordRaw) => {
+          router.addRoute(route);
+        });
+        return { ...to, replace: true };
+      }
+
+      // 检查路由是否存在
+      if (to.matched.length === 0) {
+        return { path: "/error/404" };
+      }
+
+      return true;
+    } catch (error) {
+      console.error("❌ Route guard error:", error);
+      return redirectToLogin(to, from);
+    } finally {
+      NProgress.done();
     }
-  );
+  });
 
   // 后置守卫，保证每次路由跳转结束时关闭进度条
   router.afterEach(() => {
@@ -84,23 +75,12 @@ export function setupPermission(router: Router) {
 }
 
 // 重定向到登录页
-async function redirectToLogin(
-  to: RouteLocationNormalized,
-  _from: RouteLocationNormalized,
-  next: NavigationGuardNext
-) {
-  console.log("permissioin redirectToLogin: ", Date.now(), to.path, to.fullPath);
-  // 清理状态
+async function redirectToLogin(to: RouteLocationNormalized, _from: RouteLocationNormalized) {
+  console.log("permission redirectToLogin: ", Date.now(), to.path, to.fullPath);
   await useUserStore().resetAllState();
-  //const params = new URLSearchParams(to.query as Record<string, string>);
-  //const queryString = params.toString();
-  //const redirect = queryString ? `${to.path}?${queryString}` : to.path;
-  //next(`/login?redirect=${encodeURIComponent(redirect)}`);
-  // next(`/login?redirect=${encodeURIComponent(to.fullPath)}`);
-  // 重定向到登录页
-  next({
+  return {
     path: "/login",
     query: { redirect: to.path !== "/login" ? to.fullPath : undefined },
     replace: true,
-  });
+  };
 }

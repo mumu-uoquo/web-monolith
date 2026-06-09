@@ -31,7 +31,7 @@ import { InstallCodeMirror } from "codemirror-editor-vue3";
 import { configureVxeTable } from "@/plugins/vxe-table";
 
 // ===== 路由守卫 =====
-import { setupPermissionGuard } from "@/router/guards/permission";
+import { setupPermissionGuard } from "@/router/permission";
 
 // ===== 业务服务 =====
 import { setupSse } from "@/composables";
