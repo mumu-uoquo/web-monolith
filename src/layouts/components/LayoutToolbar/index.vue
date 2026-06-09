@@ -74,12 +74,12 @@ import { DeviceEnum, SidebarColor, ThemeMode, LayoutMode } from "@/enums";
 import { useAppStore, useSettingsStore, useUserStore } from "@/stores";
 
 // 导入子组件
-import CommandPalette from "@/components/CommandPalette/index.vue";
-import Fullscreen from "@/components/Fullscreen/index.vue";
-import SizeSelect from "@/components/SizeSelect/index.vue";
+import CommandPalette from "./CommandPalette/index.vue";
+import Fullscreen from "./Fullscreen/index.vue";
+import SizeSelect from "./SizeSelect/index.vue";
+import NoticeDropdown from "./NoticeDropdown/index.vue";
+import TenantSwitcher from "./TenantSwitcher/index.vue";
 import LangSelect from "@/components/LangSelect/index.vue";
-import NoticeDropdown from "@/components/NoticeDropdown/index.vue";
-import TenantSwitcher from "@/components/TenantSwitcher/index.vue";
 import { useTenantStoreHook } from "@/stores/tenant";
 
 const { t } = useI18n();

@@ -85,11 +85,11 @@ import { SidebarColor, ThemeMode } from "@/enums";
 import { ElIcon } from "element-plus";
 import BaseLayout from "./BaseLayout.vue";
 import LayoutLogo from "./components/LayoutLogo.vue";
-import LayoutToolbar from "./components/LayoutToolbar.vue";
+import LayoutToolbar from "./components/LayoutToolbar/index.vue";
 import LayoutTagsView from "./components/LayoutTagsView.vue";
 import LayoutMain from "./components/LayoutMain.vue";
 import LayoutSidebarItem from "./components/LayoutSidebarItem.vue";
-import Hamburger from "@/components/Hamburger/index.vue";
+import Hamburger from "./components/Hamburger/index.vue";
 import variables from "@/styles/variables.module.scss";
 
 // 菜单图标渲染组件

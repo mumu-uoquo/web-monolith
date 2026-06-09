@@ -103,6 +103,7 @@ import logo from "@/assets/images/logo.png";
 import { appConfig } from "@/settings";
 
 import ThemeSwitch from "@/components/ThemeSwitch/index.vue";
+import LangSelect from "@/components/LangSelect/index.vue";
 import Hero from "./components/Hero.vue";
 import AccountForm from "./components/AccountForm.vue";
 import MfaForm from "./components/MfaForm.vue";
