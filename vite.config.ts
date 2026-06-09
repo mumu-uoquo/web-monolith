@@ -207,6 +207,7 @@ export default defineConfig(({ mode }: ConfigEnv): UserConfig => {
     },
     // 构建配置（Vite 8 使用 Rolldown + Oxc）
     build: {
+      sourcemap: mode === "development", // 开发模式生成 sourcemap 支持断点调试
       chunkSizeWarningLimit: 1200, // chunk 大小警告阈值
       reportCompressedSize: false,
       cssMinify: "lightningcss", // Vite 8 默认使用 Lightning CSS 压缩
