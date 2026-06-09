@@ -30,7 +30,7 @@ export const usePermissionStore = defineStore("permission", () => {
       const data = await AuthAPI.permission({ id: roleId });
       // 2. 解析菜单数据
       let menuData: RouteRecordRaw[] = [];
-      if (data[0].children) {
+      if (data?.length > 0 && data[0].children) {
         // 筛选菜单
         menuData = parseMenuTree(undefined, data[0].children);
         // 缓存按钮数据
@@ -67,6 +67,9 @@ export const usePermissionStore = defineStore("permission", () => {
     constantRoutes: RouteRecordRaw[],
     dynamicRoutes: RouteRecordRaw[]
   ): RouteRecordRaw[] {
+    if (dynamicRoutes.length == 0) {
+      return [...constantRoutes];
+    }
     const first = dynamicRoutes[0];
     const tempRoutes = constantRoutes.map((item) => {
       const temp = { ...item };

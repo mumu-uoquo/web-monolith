@@ -13,13 +13,14 @@
 </template>
 
 <script setup lang="ts">
-import { useAppStore, useSettingsStore } from "@/stores";
+import { useAppStore, useSettingsStore, useUserStore } from "@/stores";
 import { ThemeMode, ComponentSize, WatermarkMode } from "@/enums";
 import { defaults as defaultSettings } from "@/settings";
 import { formatDate } from "./utils/format";
 
 const appStore = useAppStore();
 const settingsStore = useSettingsStore();
+const userStore = useUserStore();
 
 const locale = computed(() => appStore.locale);
 const size = computed(() => appStore.size as ComponentSize);

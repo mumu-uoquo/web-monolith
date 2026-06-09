@@ -36,34 +36,53 @@
     <!-- 用户菜单 -->
     <div class="navbar-actions__item">
       <el-dropdown trigger="click">
-        <div class="user-profile">
+        <div class="user-profile" @click="refreshUserInfo">
+          <!--
           <div style="width: 28px; height: 28px; overflow: hidden; border-radius: 50%">
             <img
-              :src="userStore.userInfo.avatar"
+              :src="userInfo.avatar"
               class="user-profile__avatar"
               style="width: 100%; height: 100%; object-fit: cover; object-position: center"
             />
           </div>
-          <span class="user-profile__name">{{ userStore.userInfo.username }}</span>
+          -->
+          <el-avatar
+            :size="25"
+            :src="userInfo.avatar ?? defaultAvatar"
+            class="user-profile__avatar"
+          />
+          <span class="user-profile__name">{{ userInfo.userName }}</span>
         </div>
         <template #dropdown>
           <el-dropdown-menu>
-            <el-dropdown-item @click="handleProfileClick">
+            <el-dropdown-item disabled>{{ userInfo.userName }}</el-dropdown-item>
+
+            <el-dropdown-item divided @click="handleProfileClick">
               {{ t("navbar.profile") }}
             </el-dropdown-item>
-            <el-dropdown-item divided @click="logout">
-              {{ t("navbar.logout") }}
-            </el-dropdown-item>
+            <el-dropdown-item @click="openChangePasswordDialog">密码修改</el-dropdown-item>
+
+            <el-dropdown-item divided @click="logout">{{ t("navbar.logout") }}</el-dropdown-item>
           </el-dropdown-menu>
         </template>
       </el-dropdown>
     </div>
+
+    <template v-if="isDesktop">
+      <!-- 角色切换 -->
+      <div v-if="roleList.length > 1" class="navbar-actions__item">
+        <RoleSelect />
+      </div>
+    </template>
 
     <!-- 系统设置 -->
     <div v-if="defaults.showSettings" class="navbar-actions__item" @click="handleSettingsClick">
       <div class="i-svg:setting" />
     </div>
   </div>
+
+  <!-- 密码修改对话框 -->
+  <ChangePasswordDialog ref="changePasswordDialogRef" />
 </template>
 
 <script setup lang="ts">
@@ -72,6 +91,7 @@ import { useRoute, useRouter } from "vue-router";
 import { defaults } from "@/settings";
 import { DeviceEnum, SidebarColor, ThemeMode, LayoutMode } from "@/enums";
 import { useAppStore, useSettingsStore, useUserStore } from "@/stores";
+import type { UserAuthDto, UserRoleDto } from "@/api/auth";
 
 // 导入子组件
 import CommandPalette from "./CommandPalette/index.vue";
@@ -79,6 +99,8 @@ import Fullscreen from "./Fullscreen/index.vue";
 import SizeSelect from "./SizeSelect/index.vue";
 import NoticeDropdown from "./NoticeDropdown/index.vue";
 import TenantSwitcher from "./TenantSwitcher/index.vue";
+import RoleSelect from "./RoleSelect/index.vue";
+import ChangePasswordDialog from "./ChangePasswordDialog/index.vue";
 import LangSelect from "@/components/LangSelect/index.vue";
 import { useTenantStoreHook } from "@/stores/tenant";
 
@@ -94,16 +116,18 @@ const router = useRouter();
 // 是否为桌面设备
 const isDesktop = computed(() => appStore.device === DeviceEnum.DESKTOP);
 
-const canSwitchTenant = computed(() => userStore.userInfo?.canSwitchTenant === true);
-
+/* ***************************** 多租户 ********************************* */
 // 是否显示租户选择
+const canSwitchTenant = computed(() => userStore.userInfo?.canSwitchTenant === true);
 const showTenantSwitcher = computed(() => {
   if (!canSwitchTenant.value) {
     return false;
   }
   return tenantStore.tenantList.length > 1;
 });
-
+/**
+ * 切换租户
+ */
 function handleTenantChange(tenantId: number) {
   tenantStore.switchTenant(tenantId).then(
     () => {
@@ -116,6 +140,26 @@ function handleTenantChange(tenantId: number) {
   );
 }
 
+/* ***************************** 用户信息 ********************************* */
+// 默认头像
+const defaultAvatar = ref(new URL("@/assets/images/avatar-default.png", import.meta.url).href);
+// 当前用户
+const userInfo = ref<UserAuthDto>({ id: "", instituteId: "" });
+// // 当前的角色名称
+// const currentRoleName = ref<string | undefined>("");
+// 拥有的角色列表
+const roleList = ref<UserRoleDto[]>([]);
+/**
+ * 刷新用户信息
+ */
+async function refreshUserInfo() {
+  userInfo.value = await userStore.getUserInfo();
+  // currentRoleName.value = userInfo.value.roleList?.find(
+  //   (item: UserRoleDto) => item.id === userInfo.value.currentRoleId
+  // )?.roleName;
+  roleList.value = userInfo.value.roleList ? userInfo.value.roleList : [];
+}
+
 /**
  * 打开个人中心页面
  */
@@ -123,6 +167,34 @@ function handleProfileClick() {
   router.push({ name: "Profile" });
 }
 
+/**
+ * 弹出改密窗口
+ */
+const changePasswordDialogRef = ref<InstanceType<typeof ChangePasswordDialog>>();
+function openChangePasswordDialog() {
+  changePasswordDialogRef.value?.openDialog();
+}
+
+/**
+ * 退出登录
+ */
+function logout() {
+  ElMessageBox.confirm("确定注销并退出系统吗？", "提示", {
+    confirmButtonText: "确定",
+    cancelButtonText: "取消",
+    type: "warning",
+    lockScroll: false,
+  }).then(() => {
+    userStore.logout().finally(() => {
+      // 无论退出接口是否正常响应，都跳转到登录页面
+      // 若当前已在 404/401 等错误页，退出后不再跳回错误页
+      const redirect = ["/404", "/401"].includes(route.path) ? "/" : route.fullPath;
+      router.push(`/login?redirect=${encodeURIComponent(redirect)}`);
+    });
+  });
+}
+
+/* ***************************** 动态样式 ********************************* */
 // 根据主题和侧边栏配色方案选择样式类
 const navbarActionsClass = computed(() => {
   const { resolvedTheme, sidebarColorScheme, layout } = settingStore;
@@ -150,29 +222,19 @@ const navbarActionsClass = computed(() => {
 });
 
 /**
- * 退出登录
- */
-function logout() {
-  ElMessageBox.confirm("确定注销并退出系统吗？", "提示", {
-    confirmButtonText: "确定",
-    cancelButtonText: "取消",
-    type: "warning",
-    lockScroll: false,
-  }).then(() => {
-    userStore.logout().then(() => {
-      // 若当前已在 404/401 等错误页，退出后不再跳回错误页
-      const redirect = ["/404", "/401"].includes(route.path) ? "/" : route.fullPath;
-      router.push(`/login?redirect=${encodeURIComponent(redirect)}`);
-    });
-  });
-}
-
-/**
  * 打开系统设置页面
  */
 function handleSettingsClick() {
   settingStore.settingsVisible = true;
 }
+
+/* ***************************** 监听器等（需放在最后） ********************************* */
+/**
+ * 页面加载时
+ */
+onMounted(() => {
+  refreshUserInfo();
+});
 </script>
 
 <style lang="scss" scoped>
