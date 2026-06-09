@@ -33,6 +33,11 @@ const fontColor = computed(() => {
     : "rgba(0, 0, 0, .15)";
 });
 
+const route = useRoute();
+
+// 不需要水印的路由白名单
+const noWatermarkRoutes = ["/login", "/403", "/404"];
+
 /* ***************************** 水印内容 ********************************* */
 /**
  * 水印内容
@@ -43,6 +48,10 @@ const watermarkContent = computed(() => {
   // console.log("刷新水印：watermarkContent", Date.now(), settingsStore.showWatermark, defaultSettings.watermarkMode, userStore.userInfo.userName);
   // 不开启水印
   if (!settingsStore.showWatermark || defaultSettings.watermarkMode === WatermarkMode.DISABLE) {
+    return "";
+  }
+  // 当前路由不需要水印
+  if (noWatermarkRoutes.some((path) => route.path.startsWith(path))) {
     return "";
   }
   // 如果已经登录，则优先显示用户名

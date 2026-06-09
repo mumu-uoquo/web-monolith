@@ -351,6 +351,8 @@ onMounted(() => {
 }
 
 .login-card__form {
+  min-height: 420px;
+
   :deep(.el-form-item) {
     margin-bottom: 18px;
   }
