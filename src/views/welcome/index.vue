@@ -6,7 +6,7 @@
 
 <script setup lang="ts">
 import { useI18n } from "vue-i18n";
-import { defaultSettings } from "@/settings";
+import { defaults as defaultSettings } from "@/settings";
 defineOptions({
   name: "Welcome",
 });

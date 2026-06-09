@@ -26,8 +26,7 @@
 <script setup lang="ts">
 import { useWindowSize } from "@vueuse/core";
 import { useLayout } from "./useLayout";
-import { useAppStore } from "@/stores";
-import { usePermissionStore } from "@/stores";
+import { useAppStore, usePermissionStore } from "@/stores";
 import BaseLayout from "./BaseLayout.vue";
 import LayoutLogo from "./components/LayoutLogo.vue";
 import LayoutSidebar from "./components/LayoutSidebar.vue";

@@ -29,7 +29,7 @@ import { useRoute } from "vue-router";
 import path from "path-browserify";
 import type { MenuInstance } from "element-plus";
 import type { RouteRecordRaw } from "vue-router";
-import { SidebarColor, ThemeMode } from "@/enums/settings";
+import { SidebarColor, ThemeMode } from "@/enums";
 import { useSettingsStore, useAppStore } from "@/stores";
 import { isExternal } from "@/utils/index";
 import LayoutSidebarItem from "./LayoutSidebarItem.vue";

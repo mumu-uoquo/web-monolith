@@ -117,7 +117,7 @@ const isElementIcon = computed(() => {
 });
 
 function loadIcons() {
-  const icons = import.meta.glob("../../assets/icons/*.svg");
+  const icons = import.meta.glob("/src/assets/icons/**/*.svg");
   for (const path in icons) {
     const iconName = path.replace(/.*\/(.*)\.svg$/, "$1");
     svgIcons.value.push(iconName);

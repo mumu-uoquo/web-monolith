@@ -14,9 +14,10 @@ import {
   EventStreamContentType,
 } from "@microsoft/fetch-event-source";
 import { AuthStorage } from "@/utils/auth";
-import { encryptMd5, guid } from "@/utils/common";
+import { guid } from "@/utils/common";
+import { encryptMd5 } from "@/utils/crypto";
 import { ResultEnum } from "@/enums/system/result.enum";
-import { useUserStoreHook } from "@/store/modules/user-store";
+import { useUserStoreHook } from "@/stores/user";
 import SseAPI from "@/api/sse";
 
 /**

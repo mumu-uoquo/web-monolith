@@ -70,7 +70,7 @@
 import { useI18n } from "vue-i18n";
 import { useRoute, useRouter } from "vue-router";
 import { defaults } from "@/settings";
-import { DeviceEnum, SidebarColor, ThemeMode, LayoutMode } from "@/enums/settings";
+import { DeviceEnum, SidebarColor, ThemeMode, LayoutMode } from "@/enums";
 import { useAppStore, useSettingsStore, useUserStore } from "@/stores";
 
 // 导入子组件

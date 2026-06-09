@@ -8,7 +8,7 @@
 <script setup lang="ts">
 import { useRoute } from "vue-router";
 import { useLayout } from "./useLayout";
-import { LayoutMode } from "@/enums/settings";
+import { LayoutMode } from "@/enums";
 import LeftLayout from "./LeftLayout.vue";
 import TopLayout from "./TopLayout.vue";
 import MixLayout from "./MixLayout.vue";

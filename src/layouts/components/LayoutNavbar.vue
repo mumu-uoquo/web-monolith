@@ -17,6 +17,7 @@
 import { useAppStore } from "@/stores";
 import Hamburger from "@/components/Hamburger/index.vue";
 import Breadcrumb from "@/components/Breadcrumb/index.vue";
+import LayoutToolbar from "./LayoutToolbar.vue";
 
 const appStore = useAppStore();
 
