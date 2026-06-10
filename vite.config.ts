@@ -93,11 +93,11 @@ export default defineConfig(({ mode }: ConfigEnv): UserConfig => {
           ElementPlusResolver({ importStyle: "sass" }),
         ],
         // 指定自定义组件位置(默认:src/components)
-        // 仅自动加载全局通用组件，局部组件不自动加载"src/**/components"
+        // 仅自动加载全局通用组件，局部组件（"src/**/components"）不自动加载
         dirs: ["src/components"],
         // 导入组件类型声明文件路径 (false:关闭自动生成)
         dts: false,
-        //dts: "src/types/components.d.ts",
+        // dts: "src/types/components.d.ts",
       }),
     ] as PluginOption[],
     // 预加载项目必需的依赖
