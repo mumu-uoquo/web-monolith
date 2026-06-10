@@ -154,7 +154,7 @@ export function parseDate(timestamp: any, format = "YYYY-MM-DD HH:mm:ss"): Date 
     return null;
   }
 
-  const dateValues = {
+  const dateValues: Record<string, number | undefined> = {
     YYYY: undefined,
     MM: undefined,
     DD: undefined,

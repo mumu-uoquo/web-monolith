@@ -47,7 +47,8 @@
 <script setup lang="ts">
 import type { PropType } from "vue";
 import { DictionaryEnum } from "@/enums";
-import { formatDate, getRangeDate } from "@/utils/format";
+import { getRangeDate } from "@/utils/common";
+import { formatDate } from "@/utils/format";
 import SystemAPI, { SysHolidaySearchParam, SysHolidayDto } from "@/api/system";
 
 /* ***************************** 参数定义 ********************************* */

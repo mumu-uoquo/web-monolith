@@ -11,7 +11,7 @@
         <div class="notice-title-content" @click="handleShowDetail(info.messageId)">
           {{ props.info.messageTitle }}
         </div>
-        <DictLabel
+        <DictTag
           v-if="info.messageLevel"
           :code="info.messageLevel"
           size="small"
@@ -30,7 +30,7 @@
 <script setup lang="ts">
 import { formatDate } from "@/utils/format";
 import { MsgInfoViewDto } from "@/api/message";
-import DictLabel from "@/components/Dictionary/DictLabel.vue";
+import DictTag from "@/components/DictTag/index.vue";
 
 // 暴露给父级的自定义事件
 const emits = defineEmits(["on-show-detail"]);

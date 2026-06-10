@@ -1,5 +1,5 @@
 <template>
-  <el-tooltip :content="currentRoleName" effect="dark" placement="bottom">
+  <el-tooltip :content="currentRoleName" placement="bottom">
     <div v-if="roleList.length <= 1" class="tenant-switcher">
       <div class="tenant-switcher__trigger">
         <span class="tenant-switcher__label">{{ currentRoleName }}</span>

@@ -1,18 +1,23 @@
 <template>
-  <div ref="iconSelectRef" :style="{ width: props.width }">
-    <el-popover :visible="popoverVisible" :width="props.width" placement="bottom-end">
+  <div ref="iconSelectRef" :style="{ width: props.width, display: 'inline-flex' }">
+    <el-popover :visible="popoverVisible" :width="props.popoverWidth" :placement="props.placement">
       <template #reference>
-        <div @click="popoverVisible = !popoverVisible">
+        <div style="display: inline-flex" @click="popoverVisible = !popoverVisible">
           <slot>
-            <el-input v-model="selectedIcon" readonly placeholder="点击选择图标" class="reference">
+            <!-- 模式1：仅图标 -->
+            <template v-if="props.type === 'icon'">
+              <MenuIcon :icon="selectedIcon" />
+            </template>
+            <!-- 模式2：输入框 -->
+            <el-input
+              v-else
+              v-model="selectedIcon"
+              readonly
+              placeholder="点击选择图标"
+              class="reference"
+            >
               <template #prepend>
-                <!-- 根据图标类型展示 -->
-                <el-icon v-if="isElementIcon">
-                  <component :is="selectedIcon.replace('el-icon-', '')" />
-                </el-icon>
-                <template v-else>
-                  <div :class="`i-svg:${selectedIcon}`" />
-                </template>
+                <MenuIcon :icon="selectedIcon" style="width: 14px; height: 14px" />
               </template>
               <template #suffix>
                 <!-- 清空按钮 -->
@@ -82,54 +87,73 @@
 
 <script setup lang="ts">
 import * as ElementPlusIconsVue from "@element-plus/icons-vue";
+import MenuIcon from "@/components/MenuIcon/index.vue";
 
 const props = defineProps({
   modelValue: {
     type: String,
     default: "",
   },
+  // 图标显示框宽度
   width: {
     type: String,
     default: "500px",
+  },
+  // 图标选择框宽度
+  popoverWidth: {
+    type: String,
+    default: "500px",
+  },
+  // 图标选择类型
+  type: {
+    type: String as PropType<"input" | "icon">,
+    default: "input",
+  },
+  placement: {
+    type: String as PropType<
+      | "top"
+      | "top-start"
+      | "top-end"
+      | "bottom"
+      | "bottom-start"
+      | "bottom-end"
+      | "left"
+      | "left-start"
+      | "left-end"
+      | "right"
+      | "right-start"
+      | "right-end"
+    >,
+    default: "bottom-end",
   },
 });
 
 const emit = defineEmits(["update:modelValue"]);
 
-const iconSelectRef = ref();
-const popoverContentRef = ref();
-const popoverVisible = ref(false);
-const activeTab = ref("svg");
-
-const svgIcons = ref<string[]>([]);
-const elementIcons = ref<string[]>(Object.keys(ElementPlusIconsVue));
 const selectedIcon = defineModel("modelValue", {
   type: String,
   required: true,
   default: "",
 });
 
+const svgIcons = ref<string[]>([]);
+const elementIcons = ref<string[]>(Object.keys(ElementPlusIconsVue));
+
+/* ***************************** 图标选择 ********************************* */
+const popoverVisible = ref(false);
+const activeTab = ref("svg");
 const filterText = ref("");
 const filteredSvgIcons = ref<string[]>([]);
 const filteredElementIcons = ref<string[]>(elementIcons.value);
-const isElementIcon = computed(() => {
-  return selectedIcon.value && selectedIcon.value.startsWith("el-icon");
-});
-
-function loadIcons() {
-  const icons = import.meta.glob("/src/assets/icons/**/*.svg");
-  for (const path in icons) {
-    const iconName = path.replace(/.*\/(.*)\.svg$/, "$1");
-    svgIcons.value.push(iconName);
-  }
-  filteredSvgIcons.value = svgIcons.value;
-}
 
 function handleTabClick(tabPane: any) {
   activeTab.value = tabPane.props.name;
   filterIcons();
 }
 
+/**
+ * 过滤搜索图标
+ */
 function filterIcons() {
   if (activeTab.value === "svg") {
     filteredSvgIcons.value = filterText.value
@@ -144,19 +168,14 @@ function filterIcons() {
   }
 }
 
+/**
+ * 选择图标
+ */
 function selectIcon(icon: string) {
   const iconName = activeTab.value === "element" ? "el-icon-" + icon : icon;
   emit("update:modelValue", iconName);
   popoverVisible.value = false;
 }
-
-function togglePopover() {
-  popoverVisible.value = !popoverVisible.value;
-}
-
-onClickOutside(iconSelectRef, () => (popoverVisible.value = false), {
-  ignore: [popoverContentRef],
-});
 
 /**
  * 清空已选图标
@@ -165,6 +184,43 @@ function clearSelectedIcon() {
   selectedIcon.value = "";
 }
 
+/**
+ * 弹窗显示切换
+ */
+function togglePopover() {
+  popoverVisible.value = !popoverVisible.value;
+  if (popoverVisible.value) {
+    filterText.value = "";
+    filterIcons();
+  }
+}
+
+/**
+ * 点击外部关闭弹窗
+ */
+const iconSelectRef = ref();
+const popoverContentRef = ref();
+
+onClickOutside(iconSelectRef, () => (popoverVisible.value = false), {
+  ignore: [popoverContentRef],
+});
+
+/**
+ * 加载SVG图标（/assets/icons\/**\/*.svg）
+ */
+function loadIcons() {
+  const icons = import.meta.glob("/src/assets/icons/**/*.svg");
+  for (const path in icons) {
+    const iconName = path.replace(/.*\/(.*)\.svg$/, "$1");
+    svgIcons.value.push(iconName);
+  }
+  filteredSvgIcons.value = svgIcons.value;
+}
+
+/* ***************************** 监听器等（需放在最后） ********************************* */
+/**
+ * 页面加载时
+ */
 onMounted(() => {
   loadIcons();
   if (selectedIcon.value) {
@@ -174,6 +230,12 @@ onMounted(() => {
       activeTab.value = "svg";
     }
   }
+});
+/**
+ * 暴露给父级的方法
+ */
+defineExpose({
+  togglePopover,
 });
 </script>
 

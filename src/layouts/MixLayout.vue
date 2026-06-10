@@ -82,7 +82,6 @@ import { useAppStore, usePermissionStore, useSettingsStore } from "@/stores";
 import { isExternal } from "@/utils/index";
 import { translateRouteTitle } from "@/utils/i18n";
 import { SidebarColor, ThemeMode } from "@/enums";
-import { ElIcon } from "element-plus";
 import BaseLayout from "./BaseLayout.vue";
 import LayoutLogo from "./components/LayoutLogo.vue";
 import LayoutToolbar from "./components/LayoutToolbar/index.vue";
@@ -91,31 +90,8 @@ import LayoutMain from "./components/LayoutMain.vue";
 import LayoutSidebarItem from "./components/LayoutSidebarItem.vue";
 import Hamburger from "./components/Hamburger/index.vue";
 import variables from "@/styles/variables.module.scss";
+import MenuIcon from "@/components/MenuIcon/index.vue";
 
-// 菜单图标渲染组件
-const MenuIcon = defineComponent({
-  props: { icon: String },
-  setup(props) {
-    const isElIcon = computed(() => props.icon?.startsWith("el-icon"));
-    const iconName = computed(() => props.icon?.replace("el-icon-", ""));
-
-    return () => {
-      if (!props.icon) {
-        return h("div", { class: "i-svg:menu" });
-      }
-
-      // Element Plus 图标
-      if (isElIcon.value) {
-        return h(ElIcon, null, () => h(resolveComponent(iconName.value!)));
-      }
-
-      // SVG 图标
-      return h("div", { class: `i-svg:${props.icon}` });
-    };
-  },
-});
-
-const route = useRoute();
 const router = useRouter();
 const { width } = useWindowSize();
 

@@ -40,7 +40,8 @@ vi.mock("@/enums/system/dictionary.enum", () => ({
 }));
 
 import UserAPI from "@/api/user";
-import { encryptPassword, passwordComplex } from "@/utils/common";
+import { passwordComplex } from "@/utils/common";
+import { encryptPassword } from "@/utils/crypto";
 
 const PASSWORD_WEAK = "002003";
 const PASSWORD_MIDDLE = "002006";
