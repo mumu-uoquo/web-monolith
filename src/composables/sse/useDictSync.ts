@@ -1,4 +1,4 @@
-import { useDictStoreHook } from "@/stores/dict";
+import { useDictStoreHook } from "@/stores";
 import { useSse } from "./useSse";
 
 export interface DictChangeMessage {

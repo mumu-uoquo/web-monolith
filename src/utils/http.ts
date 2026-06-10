@@ -6,7 +6,7 @@ import axios, {
   type Method,
 } from "axios";
 
-import { useUserStoreHook } from "@/stores/user";
+import { useUserStoreHook } from "@/stores";
 import { ResultEnum } from "@/enums/system/result.enum";
 import type { TokenDto } from "@/api/auth";
 import router from "@/router";

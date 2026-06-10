@@ -17,7 +17,7 @@ import { AuthStorage } from "@/utils/auth";
 import { guid } from "@/utils/common";
 import { encryptMd5 } from "@/utils/crypto";
 import { ResultEnum } from "@/enums/system/result.enum";
-import { useUserStoreHook } from "@/stores/user";
+import { useUserStoreHook } from "@/stores";
 import SseAPI from "@/api/sse";
 
 /**

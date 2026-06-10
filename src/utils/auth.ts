@@ -8,7 +8,7 @@ const ACCESS_TOKEN_KEY = `${pkg.name}-access-token`;
 const REFRESH_TOKEN_KEY = `${pkg.name}-refresh-token`;
 const DEVICE_ID_KEY = "UOQUO_DEVICE_ID";
 
-import { useUserStoreHook } from "@/stores/user";
+import { useUserStoreHook } from "@/stores";
 import router from "@/router";
 
 // 负责本地凭证与偏好的读写

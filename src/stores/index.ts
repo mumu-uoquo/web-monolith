@@ -7,12 +7,12 @@ export function setupStore(app: App<Element>) {
   app.use(store);
 }
 
-export * from "./app";
-export * from "./dict";
-export * from "./permission";
-export * from "./return-code-store";
-export * from "./settings";
-export * from "./tags-view";
-export * from "./tenant";
-export * from "./user";
+export * from "./modules/app.store";
+export * from "./modules/dict.store";
+export * from "./modules/permission.store";
+export * from "./modules/return-code.store";
+export * from "./modules/settings.store";
+export * from "./modules/tags-view.store";
+export * from "./modules/tenant.store";
+export * from "./modules/user.store";
 export { store };

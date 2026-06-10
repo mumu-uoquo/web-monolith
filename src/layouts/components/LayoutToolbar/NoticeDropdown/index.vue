@@ -56,7 +56,7 @@
 <script setup lang="ts">
 import { formatDate } from "@/utils/format";
 import { DictionaryEnum } from "@/enums/system/dictionary.enum";
-import { useUserStoreHook } from "@/stores/user";
+import { useUserStoreHook } from "@/stores";
 import { useFetchEventSource } from "@/composables/sse/useEventSource";
 import MessageAPI, { MsgInfoViewDto } from "@/api/message";
 import NoticeList from "./NoticeList.vue";

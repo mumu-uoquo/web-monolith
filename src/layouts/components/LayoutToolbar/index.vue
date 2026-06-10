@@ -102,7 +102,7 @@ import TenantSwitcher from "./TenantSwitcher/index.vue";
 import RoleSelect from "./RoleSelect/index.vue";
 import ChangePasswordDialog from "./ChangePasswordDialog/index.vue";
 import LangSelect from "@/components/LangSelect/index.vue";
-import { useTenantStoreHook } from "@/stores/tenant";
+import { useTenantStoreHook } from "@/stores";
 
 const { t } = useI18n();
 const appStore = useAppStore();

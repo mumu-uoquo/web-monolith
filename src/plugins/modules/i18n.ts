@@ -1,7 +1,7 @@
 // 多组件库的国际化和本地项目国际化兼容
 import type { App } from "vue";
 import { createI18n, type I18n } from "vue-i18n";
-import { useAppStoreHook } from "@/stores/app";
+import { useAppStoreHook } from "@/stores";
 
 // element-plus国际化
 import enLocale from "element-plus/es/locale/lang/en";
