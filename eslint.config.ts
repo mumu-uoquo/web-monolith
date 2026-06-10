@@ -192,6 +192,7 @@ export default [
         },
       ],
       "vue/component-name-in-template-casing": ["error", "PascalCase"],
+      "vue/component-definition-name-casing": "off",
       "@typescript-eslint/no-explicit-any": "off",
     },
   },
