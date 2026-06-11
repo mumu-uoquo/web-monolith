@@ -9,7 +9,6 @@ import axios, {
 import { useUserStoreHook } from "@/stores";
 import { ResultEnum } from "@/enums/system/result.enum";
 import type { TokenDto } from "@/api/auth";
-import router from "@/router";
 
 import FileUtil from "./file";
 import { AuthStorage, redirectToLogin } from "./auth";
@@ -397,9 +396,13 @@ class AxiosWithTokenRefresh {
    */
   private handleDownload(response: AxiosResponse) {
     // 从响应头获取文件名
-    let filename = FileUtil.parseFileNameByDisposition(response.headers["content-disposition"]);
+    let filename = FileUtil.parseFileNameByDisposition(
+      (response.headers["content-disposition"] as string) ?? ""
+    );
     if (!filename) {
-      filename = FileUtil.generateFileNameByContentType(response.headers["content-type"]);
+      filename = FileUtil.generateFileNameByContentType(
+        (response.headers["content-type"] as string) ?? ""
+      );
     }
 
     // 创建 Blob 对象

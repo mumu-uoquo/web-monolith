@@ -32,7 +32,7 @@ export function setupPermissionGuard() {
 
       // 1. 未登录处理
       if (!isLoggedIn) {
-        throw new Error("未登录，无权访问，请登录后再试");
+        throw new Error("无权访问，请登录后再试");
       }
 
       // 2. 已登录且访问登录页，重定向到首页
@@ -61,9 +61,10 @@ export function setupPermissionGuard() {
       }
 
       return true;
-    } catch (error) {
+    } catch (error: unknown) {
       console.error("❌ Route guard error:", error);
-      return redirectToLogin("", false, to);
+      const message = error instanceof Error ? error.message : "请重新登录";
+      return redirectToLogin(message, true, to);
     } finally {
       NProgress.done();
     }
