@@ -111,7 +111,11 @@ function resolveFullPath(routePath: string) {
   }
 
   // 解析路径，生成完整的绝对路径
-  return path.resolve(props.basePath, routePath);
+  if (routePath.startsWith("/")) {
+    return path.resolve(routePath);
+  } else {
+    return path.resolve(props.basePath, routePath);
+  }
 }
 
 /**

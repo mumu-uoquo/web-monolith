@@ -292,11 +292,27 @@ const initAffixTags = () => {
 };
 
 const addCurrentTag = () => {
-  if (!route.meta?.title) return;
+  let title = route.meta?.title || "";
+  // 如：router.push({path:"/iframe/https://www.uoquo.com"})
+  if (["redirect", "iframe"].includes(title)) {
+    title = route.query.title as string;
+    delete route.query.title;
+  }
+  // console.log("addCurrentTag", title, route.path, route.fullPath, route.meta, route.query, route);
+  // 不加入tags标签：无标题
+  if (!title) {
+    console.warn(`[${route.fullPath}] 没有标题，将在当前标签中加载`);
+    return;
+  }
+  // 不加入tags标签：重定向和弹窗
+  if (["redirect", "window"].includes(route.meta.target as string)) {
+    return;
+  }
+  // 追加到tags标签中
 
   tagsViewStore.addView({
     name: route.name as string,
-    title: route.meta.title,
+    title,
     path: route.path,
     fullPath: route.fullPath,
     icon: route.meta.icon,

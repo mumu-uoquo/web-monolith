@@ -15,7 +15,8 @@
         v-if="onlyOneChild.meta"
         :to="{
           path: resolvePath(onlyOneChild.path),
-          query: onlyOneChild.meta.params,
+          query: onlyOneChild.meta.querys,
+          params: onlyOneChild.meta.params,
         }"
       >
         <el-menu-item
@@ -160,7 +161,11 @@ function resolvePath(routePath: string) {
   if (isExternal(props.basePath)) return props.basePath;
 
   // 拼接父路径和当前路径
-  return path.resolve(props.basePath, routePath);
+  if (routePath.startsWith("/")) {
+    return path.resolve(routePath);
+  } else {
+    return path.resolve(props.basePath, routePath);
+  }
 }
 </script>
 

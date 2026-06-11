@@ -10,6 +10,7 @@
         <LayoutLogo v-if="showLogo" :collapse="!isSidebarOpen" />
         <el-scrollbar>
           <LayoutSidebar :data="routes" base-path="" />
+          <CenterCollapse />
         </el-scrollbar>
       </div>
     </div>
@@ -39,6 +40,7 @@ import LayoutNavbar from "./components/LayoutNavbar.vue";
 import LayoutTagsView from "./components/LayoutTagsView.vue";
 import LayoutMain from "./components/LayoutMain.vue";
 import LayoutSidebar from "./components/LayoutSidebar.vue";
+import CenterCollapse from "./components/CenterCollapse/index";
 
 const { showTagsView, showLogo, isSidebarOpen, routes } = useLayout();
 const appStore = useAppStore();
