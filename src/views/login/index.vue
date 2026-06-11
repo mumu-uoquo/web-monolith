@@ -61,10 +61,10 @@
                 <span class="social-divider__line" />
               </div>
               <div class="social-icons">
-                <span class="social-icons__item"><span class="i-svg:wechat" /></span>
-                <span class="social-icons__item"><span class="i-svg:qq" /></span>
-                <span class="social-icons__item"><span class="i-svg:github" /></span>
-                <span class="social-icons__item"><span class="i-svg:gitee" /></span>
+                <span class="social-icons__item"><span class="i-svg:site-wechat" /></span>
+                <span class="social-icons__item"><span class="i-svg:site-qq" /></span>
+                <span class="social-icons__item"><span class="i-svg:site-github" /></span>
+                <span class="social-icons__item"><span class="i-svg:site-gitee" /></span>
               </div>
             </div>
           </div>

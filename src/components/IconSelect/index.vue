@@ -6,7 +6,7 @@
           <slot>
             <!-- 模式1：仅图标 -->
             <template v-if="props.type === 'icon'">
-              <MenuIcon :icon="selectedIcon" />
+              <MenuIcon :icon="selectedIcon" style="width: 14px; height: 14px" />
             </template>
             <!-- 模式2：输入框 -->
             <el-input
@@ -206,12 +206,18 @@ onClickOutside(iconSelectRef, () => (popoverVisible.value = false), {
 });
 
 /**
- * 加载SVG图标（/assets/icons\/**\/*.svg）
+ * 加载SVG图标（/assets/icons/** /*.svg）
+ * 图标名约定：根目录图标用 `图标名`，子目录图标用 `子目录-图标名`
+ * 例如：icons/user.svg -> "user"，icons/site/wechat.svg -> "site-wechat"
  */
 function loadIcons() {
   const icons = import.meta.glob("/src/assets/icons/**/*.svg");
-  for (const path in icons) {
-    const iconName = path.replace(/.*\/(.*)\.svg$/, "$1");
+  const base = "/src/assets/icons/";
+  for (const filePath in icons) {
+    // 取 base 之后的相对路径，例如 "site/wechat.svg" 或 "user.svg"
+    const relative = filePath.slice(base.length);
+    // 去掉 .svg 后缀，把路径分隔符 / 替换为 -
+    const iconName = relative.replace(/\.svg$/, "").replaceAll("/", "-");
     svgIcons.value.push(iconName);
   }
   filteredSvgIcons.value = svgIcons.value;

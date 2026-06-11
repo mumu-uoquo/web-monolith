@@ -67,8 +67,8 @@
 
         <div class="command-palette-hints">
           <div class="command-palette-hint">
-            <div class="command-palette-hint__key"><div class="i-svg:up" /></div>
-            <div class="command-palette-hint__key"><div class="i-svg:down" /></div>
+            <div class="command-palette-hint__key"><div class="i-svg:arrow-up" /></div>
+            <div class="command-palette-hint__key"><div class="i-svg:arrow-down" /></div>
             <span class="command-palette-hint__text">切换</span>
           </div>
           <div class="command-palette-hint">
