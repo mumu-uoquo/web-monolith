@@ -75,6 +75,7 @@
 </template>
 
 <script setup lang="ts">
+import { useRoute, useRouter } from "vue-router";
 import type { LocationQueryRaw, RouteRecordRaw } from "vue-router";
 import { useWindowSize } from "@vueuse/core";
 import { useLayout } from "./useLayout";
@@ -93,6 +94,7 @@ import variables from "@/styles/variables.module.scss";
 import MenuIcon from "@/components/MenuIcon/index.vue";
 
 const router = useRouter();
+const route = useRoute();
 const { width } = useWindowSize();
 
 const appStore = useAppStore();
@@ -146,8 +148,14 @@ const activeSideMenuPath = computed(() => {
 
 // 解析左侧菜单路径
 function resolvePath(routePath: string) {
-  if (isExternal(routePath)) return routePath;
-  if (routePath.startsWith("/")) return activeTopMenuPath.value + routePath;
+  if (isExternal(routePath)) {
+    return routePath;
+  }
+  if (routePath.startsWith("/")) {
+    // 若已经是/开头，表示绝对URL，不再拼接父级路径
+    //return activeTopMenuPath.value + routePath;
+    return routePath;
+  }
   return `${activeTopMenuPath.value}/${routePath}`;
 }
 

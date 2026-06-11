@@ -40,7 +40,7 @@ import LayoutNavbar from "./components/LayoutNavbar.vue";
 import LayoutTagsView from "./components/LayoutTagsView.vue";
 import LayoutMain from "./components/LayoutMain.vue";
 import LayoutSidebar from "./components/LayoutSidebar.vue";
-import CenterCollapse from "./components/CenterCollapse/index";
+import CenterCollapse from "./components/CenterCollapse/index.vue";
 
 const { showTagsView, showLogo, isSidebarOpen, routes } = useLayout();
 const appStore = useAppStore();
