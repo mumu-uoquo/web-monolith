@@ -1,6 +1,7 @@
 import type { Router, RouteLocationNormalized, RouteRecordRaw } from "vue-router";
 import NProgress from "@/plugins/nprogress";
 import router from "@/router";
+import { redirectToLogin } from "@/utils/auth";
 import { usePermissionStore, useUserStore } from "@/stores";
 
 export function setupPermissionGuard() {
@@ -62,7 +63,7 @@ export function setupPermissionGuard() {
       return true;
     } catch (error) {
       console.error("❌ Route guard error:", error);
-      return redirectToLogin(to, from);
+      return redirectToLogin("", false, to);
     } finally {
       NProgress.done();
     }
@@ -72,15 +73,4 @@ export function setupPermissionGuard() {
   router.afterEach(() => {
     NProgress.done();
   });
-}
-
-// 重定向到登录页
-async function redirectToLogin(to: RouteLocationNormalized, _from: RouteLocationNormalized) {
-  console.log("permission redirectToLogin: ", Date.now(), to.path, to.fullPath);
-  await useUserStore().resetAllState();
-  return {
-    path: "/login",
-    query: { redirect: to.path !== "/login" ? to.fullPath : undefined },
-    replace: true,
-  };
 }

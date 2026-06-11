@@ -12,7 +12,7 @@ import type { TokenDto } from "@/api/auth";
 import router from "@/router";
 
 import FileUtil from "./file";
-import { AuthStorage } from "./auth";
+import { AuthStorage, redirectToLogin } from "./auth";
 import { guid } from "./common";
 import { encryptMd5 } from "./crypto";
 
@@ -141,7 +141,7 @@ class AxiosWithTokenRefresh {
           this.refreshPromise = null;
           // 拒绝所有等待的请求，并重新登录
           this.rejectAllRequests(error);
-          this.redirectToLogin();
+          redirectToLogin();
           // 已经重定向到登录，所以不需要再冒泡处理异常
           // reject(error);
         });
@@ -317,7 +317,7 @@ class AxiosWithTokenRefresh {
             response.config?.headers?.logid,
             response.config?.url
           );
-          this.redirectToLogin();
+          redirectToLogin();
           // return Promise.reject(new Error(message || "Error"));
         } else if (response.config?.silent) {
           // 2.4 交由由调用方处理错误
@@ -361,7 +361,7 @@ class AxiosWithTokenRefresh {
               error.response.config?.headers?.logid,
               error.response.config?.url
             );
-            this.redirectToLogin();
+            redirectToLogin();
             // return Promise.reject(error);
             return;
           } else if (error.response.config?.silent) {
@@ -390,32 +390,6 @@ class AxiosWithTokenRefresh {
       grouping: true,
       type: "error",
     });
-  }
-
-  /**
-   * 重定向到登录页
-   */
-  private async redirectToLogin(message?: string) {
-    if (this.toLoginTimer) {
-      return;
-    }
-    this.$message(message || "您的会话已过期，请重新登录");
-    await useUserStoreHook().resetAllState();
-    // 跳转到登录页，保留当前路由用于登录后跳转
-    this.toLoginTimer = setTimeout(async () => {
-      const currentFullPath = router.currentRoute.value.fullPath;
-      this._debug("http.ts redirectToLogin: ", "", currentFullPath, router.currentRoute.value);
-      if ("/login" === router.currentRoute.value.path) {
-        await router.push(currentFullPath);
-      } else {
-        await router.push({
-          path: "/login",
-          query: { redirect: currentFullPath },
-          replace: true,
-        });
-      }
-      this.toLoginTimer = null;
-    }, 2000);
   }
 
   /**

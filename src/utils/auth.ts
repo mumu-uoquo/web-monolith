@@ -10,6 +10,7 @@ const DEVICE_ID_KEY = "UOQUO_DEVICE_ID";
 
 import { useUserStoreHook } from "@/stores";
 import router from "@/router";
+import type { RouteLocationNormalized } from "vue-router";
 
 // 负责本地凭证与偏好的读写
 export const AuthStorage = {
@@ -90,7 +91,8 @@ export const AuthStorage = {
 let redirectingToLogin = false;
 export async function redirectToLogin(
   message: string = "请重新登录",
-  notify: boolean = true
+  notify: boolean = true,
+  to?: RouteLocationNormalized
 ): Promise<void> {
   if (redirectingToLogin) return;
   redirectingToLogin = true;
@@ -108,8 +110,12 @@ export async function redirectToLogin(
 
   try {
     // 跳转到登录页，保留当前路由用于登录后跳转
-    const currentPath = router.currentRoute.value.fullPath;
-    await router.push(`/login?redirect=${encodeURIComponent(currentPath)}`);
+    const { path, fullPath } = to ?? router.currentRoute.value;
+    if ("/login" === path) {
+      await router.push(fullPath);
+    } else {
+      await router.push(`/login?redirect=${encodeURIComponent(fullPath)}`);
+    }
   } catch (error) {
     console.error("Redirect to login error:", error);
     // 强制跳转，即使路由重定向失败
