@@ -14,8 +14,13 @@ vi.mock("@/api/user", () => ({
   },
 }));
 
+vi.mock("@/utils/crypto", () => ({
+  encrypt: {
+    password: vi.fn((pwd: string) => (pwd ? `encrypted:${pwd}` : "")),
+  },
+}));
+
 vi.mock("@/utils/common", () => ({
-  encryptPassword: vi.fn(async (pwd: string) => (pwd ? `encrypted:${pwd}` : "")),
   passwordComplex: vi.fn((str: string): number => {
     if (!str) return 0;
     const arr = str.split("");
@@ -41,7 +46,7 @@ vi.mock("@/enums/system/dictionary.enum", () => ({
 
 import UserAPI from "@/api/user";
 import { passwordComplex } from "@/utils/common";
-import { encryptPassword } from "@/utils/crypto";
+import { encrypt } from "@/utils/crypto";
 
 const PASSWORD_WEAK = "002003";
 const PASSWORD_MIDDLE = "002006";
@@ -128,8 +133,8 @@ async function handleSubmit(
   }
   try {
     const params = {
-      oldPassword: await encryptPassword(formData.oldPassword),
-      newPassword: await encryptPassword(formData.newPassword),
+      oldPassword: encrypt.password(formData.oldPassword),
+      newPassword: encrypt.password(formData.newPassword),
       newPwdLevel: formData.newPwdLevel,
     };
     await (UserAPI as any).updateSelfPassword(params);
@@ -545,7 +550,7 @@ describe("Property 5: 确认密码一致性校验", () => {
 describe("Property 6: 提交时密码加密", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(encryptPassword).mockImplementation(async (pwd: string) =>
+    vi.mocked(encrypt.password).mockImplementation((pwd: string) =>
       pwd ? `encrypted:${pwd}` : ""
     );
     vi.mocked(UserAPI.updateSelfPassword).mockResolvedValue("ok" as any);

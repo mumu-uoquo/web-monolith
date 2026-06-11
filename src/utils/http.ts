@@ -13,7 +13,7 @@ import type { TokenDto } from "@/api/auth";
 import FileUtil from "./file";
 import { AuthStorage, redirectToLogin } from "./auth";
 import { guid } from "./common";
-import { encryptMd5 } from "./crypto";
+import { encrypt } from "./crypto";
 
 interface OriginalRequest {
   config: AxiosRequestConfig;
@@ -102,7 +102,7 @@ class AxiosWithTokenRefresh {
         body = JSON.stringify(config.data);
       }
     }
-    const sign = encryptMd5(prefix + param + body + secret);
+    const sign = encrypt.md5(prefix + param + body + secret);
     config.headers["signature-app"] = sign;
   }
 

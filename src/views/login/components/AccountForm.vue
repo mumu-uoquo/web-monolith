@@ -87,7 +87,7 @@
 <script setup lang="ts">
 import { User, Lock, Loading } from "@element-plus/icons-vue";
 import { useUserStore } from "@/stores";
-import { encryptPassword } from "@/utils/crypto";
+import { encrypt } from "@/utils/crypto";
 import { AuthStorage } from "@/utils/auth";
 import AuthAPI, { type UserLoginParam } from "@/api/auth";
 
@@ -158,7 +158,7 @@ const handleLoginSubmit = useDebounceFn(async () => {
     captcha: loginData.value.captcha,
   };
   try {
-    reqData.password = await encryptPassword(reqData.password || "");
+    reqData.password = encrypt.password(reqData.password || "");
     const userDto = await AuthAPI.accountLogin(reqData);
     AuthStorage.setRememberMe(loginData.value.rememberMe);
     if (userDto.totpStatus === "enabled") {

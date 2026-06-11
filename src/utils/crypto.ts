@@ -1,61 +1,177 @@
 import CryptoJS from "crypto-js";
+import JSEncrypt from "jsencrypt";
+
+// ─────────────────────────────────────────────
+// 内部工具函数
+// ─────────────────────────────────────────────
 
 /**
- * 加密：MD5
+ * 生成基于时间因子的 AES 密钥（5 秒粒度）
+ * 若当前时间距下一个窗口不足 100ms，直接取下一个窗口的 key，
+ * 避免网络传输延迟导致服务端解密时窗口已切换
+ * @param flag 是否需要考虑往后冗余100ms
  */
-export function encryptMd5(str: string) {
-  // 转UTF-8编码的WordArray
-  const utf8Text = CryptoJS.enc.Utf8.parse(str);
-  // 加密
-  const hash = CryptoJS.MD5(utf8Text);
-  // 转16进制字符串
-  return hash.toString(CryptoJS.enc.Hex);
+function _getTimedKey(flag: boolean = true): number {
+  const time = Date.now();
+  const key1 = Math.floor(time / 5000);
+  if (flag) {
+    // 常用于请求服务端时，考虑向后冗余100ms
+    const key2 = Math.floor((time + 100) / 5000);
+    return key1 !== key2 ? key2 : key1;
+  } else {
+    // 常用于解析后端数据，不用考虑向后冗余100ms
+    return key1;
+  }
 }
 
 /**
- * 加密：AES
+ * AES CBC/PKCS7 底层加密，key 不足 16 位时右补 0
  */
-export function encryptAES(str: string, key: string) {
-  // key 转16定长字符串
-  key = key.padEnd(16, "0");
-  // 转UTF-8编码的WordArray
+function _aesEncrypt(str: string, key: string): string {
+  const paddedKey = key.padEnd(16, "0");
   const iv = CryptoJS.enc.Utf8.parse("");
-  const utf8Str = CryptoJS.enc.Utf8.parse(str);
-  const utf8Key = CryptoJS.enc.Utf8.parse(key);
-  // 加密
-  const hash = CryptoJS.AES.encrypt(utf8Str, utf8Key, {
+  const encrypted = CryptoJS.AES.encrypt(
+    CryptoJS.enc.Utf8.parse(str),
+    CryptoJS.enc.Utf8.parse(paddedKey),
+    { iv, mode: CryptoJS.mode.CBC, padding: CryptoJS.pad.Pkcs7 }
+  );
+  return encrypted.ciphertext.toString(CryptoJS.enc.Hex);
+}
+
+/**
+ * AES CBC/PKCS7 底层解密，key 不足 16 位时右补 0
+ */
+function _aesDecrypt(hex: string, key: string): string {
+  const paddedKey = key.padEnd(16, "0");
+  const iv = CryptoJS.enc.Utf8.parse("");
+  const cipherParams = CryptoJS.lib.CipherParams.create({
+    ciphertext: CryptoJS.enc.Hex.parse(hex),
+  });
+  const decrypted = CryptoJS.AES.decrypt(cipherParams, CryptoJS.enc.Utf8.parse(paddedKey), {
     iv,
     mode: CryptoJS.mode.CBC,
     padding: CryptoJS.pad.Pkcs7,
   });
-  // 转16进制字符串
-  return hash.ciphertext.toString(CryptoJS.enc.Hex);
+  return decrypted.toString(CryptoJS.enc.Utf8);
 }
 
 /**
- * 密码加密
+ * MD5 底层实现
  */
-export async function encryptPassword(password: string) {
-  if (!password) {
-    return "";
-  }
-  // 1. 先用MD5加密，防止后台得到明文
-  let pswd = encryptMd5(password);
-  // 2. 采用时间因子作为密钥，进行AES加密，避免直接用MD5值被复用的风险
-  // TODO 若担心客户端时间偏差，可以获取服务端时间戳
-  const time = new Date().getTime();
-  let key1 = Math.floor(time / 5000);
-  // 为了防止网络传输延时，导致超过了时间因子有效期，
-  // 因此判断若100毫秒后的时间因子有改变，则延迟100ms再重新获取时间因子
-  const key2 = Math.floor((time + 100) / 5000);
-  if (key1 !== key2) {
-    key1 = await new Promise((resolve) => {
-      setTimeout(() => {
-        resolve(key2);
-      }, 150);
-    });
-  }
-  // AES加密
-  pswd = encryptAES(pswd, String(key1));
-  return pswd;
+function _md5(str: string): string {
+  return CryptoJS.MD5(CryptoJS.enc.Utf8.parse(str)).toString(CryptoJS.enc.Hex);
 }
+
+// ─────────────────────────────────────────────
+// encrypt 命名空间
+// ─────────────────────────────────────────────
+
+export const encrypt = {
+  /**
+   * MD5 加密，返回 32 位小写十六进制字符串
+   * @param str 明文
+   */
+  md5(str: string): string {
+    return _md5(str);
+  },
+
+  /**
+   * SHA256 加密，返回 64 位小写十六进制字符串
+   * @param str 明文
+   */
+  sha256(str: string): string {
+    return CryptoJS.SHA256(CryptoJS.enc.Utf8.parse(str)).toString(CryptoJS.enc.Hex);
+  },
+
+  /**
+   * AES 加密（CBC + PKCS7），返回十六进制密文
+   * @param str 明文
+   * @param key 密钥（不足 16 位右补 0）
+   */
+  aes(str: string, key: string): string {
+    return _aesEncrypt(str, key);
+  },
+
+  /**
+   * AES 加密（时间因子密钥，5 秒粒度）
+   * 用于需要时间窗口保护的场景
+   * @param str 明文
+   */
+  taes(str: string): string {
+    return _aesEncrypt(str, String(_getTimedKey()));
+  },
+
+  /**
+   * RSA 公钥加密，返回 Base64 密文
+   * @param str 明文
+   * @param publicKey PEM 格式公钥
+   */
+  rsa(str: string, publicKey: string): string {
+    const jsEncrypt = new JSEncrypt();
+    jsEncrypt.setPublicKey(publicKey);
+    const result = jsEncrypt.encrypt(str);
+    if (result === false) {
+      throw new Error("RSA 加密失败，请检查公钥格式");
+    }
+    return result;
+  },
+
+  /**
+   * 密码加密：先 MD5，再用时间因子（5 秒粒度）作为 AES 密钥加密
+   * 原 encryptPassword
+   * @param password 明文密码
+   */
+  password(password: string): string {
+    if (!password) return "";
+    return _aesEncrypt(_md5(password), String(_getTimedKey()));
+  },
+};
+
+// ─────────────────────────────────────────────
+// decrypt 命名空间
+// ─────────────────────────────────────────────
+
+export const decrypt = {
+  /**
+   * AES 解密（CBC + PKCS7），输入十六进制密文
+   * @param hex 十六进制密文
+   * @param key 密钥（不足 16 位右补 0）
+   */
+  aes(hex: string, key: string): string {
+    return _aesDecrypt(hex, key);
+  },
+
+  /**
+   * AES 解密（时间因子密钥）
+   * 解密失败时，自动用 key-1 和 key+1 重试，容忍跨窗口的时间偏差
+   * @param hex 十六进制密文
+   */
+  taes(hex: string): string {
+    if (!hex) return "";
+    const key = _getTimedKey(false);
+    for (const k of [key, key - 1, key + 1]) {
+      try {
+        const result = _aesDecrypt(hex, String(k));
+        if (result) return result;
+      } catch {
+        // 继续尝试下一个 key
+      }
+    }
+    throw new Error("taes 解密失败：时间因子不匹配");
+  },
+
+  /**
+   * RSA 公钥解密（适用于服务端私钥加密、客户端公钥验证的场景）
+   * @param ciphertext Base64 密文
+   * @param publicKey PEM 格式公钥
+   */
+  rsa(ciphertext: string, publicKey: string): string {
+    const jsEncrypt = new JSEncrypt();
+    jsEncrypt.setPublicKey(publicKey);
+    const result = jsEncrypt.decrypt(ciphertext);
+    if (result === false) {
+      throw new Error("RSA 解密失败，请检查公钥或密文");
+    }
+    return result;
+  },
+};

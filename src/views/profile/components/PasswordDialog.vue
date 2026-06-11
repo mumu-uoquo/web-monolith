@@ -64,7 +64,7 @@ import type { FormInstance, FormItemRule } from "element-plus";
 import { DictionaryEnum } from "@/enums/system/dictionary.enum";
 import UserAPI, { ChangePasswordParam } from "@/api/user";
 import { passwordComplex } from "@/utils/common";
-import { encryptPassword } from "@/utils/crypto";
+import { encrypt } from "@/utils/crypto";
 
 /* ***************************** 参数定义 ********************************* */
 interface Props {
@@ -189,8 +189,8 @@ async function handleSubmit() {
   submitting.value = true;
   try {
     const params: ChangePasswordParam = {
-      oldPassword: await encryptPassword(formModel.oldPassword),
-      newPassword: await encryptPassword(formModel.newPassword),
+      oldPassword: encrypt.password(formModel.oldPassword),
+      newPassword: encrypt.password(formModel.newPassword),
       newPwdLevel: formModel.newPwdLevel,
     };
     await UserAPI.updateSelfPassword(params);

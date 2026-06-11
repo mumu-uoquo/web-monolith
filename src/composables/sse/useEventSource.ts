@@ -15,7 +15,7 @@ import {
 } from "@microsoft/fetch-event-source";
 import { AuthStorage } from "@/utils/auth";
 import { guid } from "@/utils/common";
-import { encryptMd5 } from "@/utils/crypto";
+import { encrypt } from "@/utils/crypto";
 import { ResultEnum } from "@/enums/system/result.enum";
 import { useUserStoreHook } from "@/stores";
 import SseAPI from "@/api/sse";
@@ -137,7 +137,7 @@ function getSignHeader(body: any) {
   const prefix = appid + token + language + nonce + device + time;
   const param = "";
   const bodystr = body ? JSON.stringify(body) : "";
-  const signature = encryptMd5(prefix + param + bodystr + secret);
+  const signature = encrypt.md5(prefix + param + bodystr + secret);
 
   return {
     token,

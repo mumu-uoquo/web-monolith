@@ -47,7 +47,7 @@ import { useDebounceFn } from "@vueuse/core";
 import { DictionaryEnum } from "@/enums/system/dictionary.enum";
 import UserAPI, { UserInfoDto, ChangePasswordParam } from "@/api/user";
 import { passwordComplex } from "@/utils/common";
-import { encryptPassword } from "@/utils/crypto";
+import { encrypt } from "@/utils/crypto";
 
 /* ***************************** 参数定义 ********************************* */
 // 暴露给父级的自定义事件
@@ -123,7 +123,7 @@ const handleInfoSubmit = useDebounceFn(async () => {
     newPassword: infoFormData.value.newPassword,
     newPwdLevel: infoFormData.value.newPwdLevel,
   } as ChangePasswordParam;
-  params.newPassword = await encryptPassword(params.newPassword || "");
+  params.newPassword = encrypt.password(params.newPassword || "");
   // console.log("handleInfoSubmit", params);
   infoFormRef.value.validate((isValid: boolean) => {
     if (!isValid) {

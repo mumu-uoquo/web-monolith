@@ -168,7 +168,7 @@ import DepartmentAPI, { DepartmentTreeDto } from "@/api/department";
 import RoleAPI, { RoleInfoDto } from "@/api/role";
 import UserAPI, { GroupDto, UserInfoDto, UserUpdateParam } from "@/api/user";
 import { passwordComplex } from "@/utils/common";
-import { encryptPassword } from "@/utils/crypto";
+import { encrypt } from "@/utils/crypto";
 
 /* ***************************** 参数定义 ********************************* */
 // 暴露给父级的自定义事件
@@ -371,7 +371,7 @@ const handleInfoSubmit = useDebounceFn(async () => {
     ],
     userGroupIdList: infoFormData.value.userGroupIdList,
   } as UserUpdateParam;
-  params.password = await encryptPassword(params.password || "");
+  params.password = encrypt.password(params.password || "");
   // console.log("handleInfoSubmit", params);
   infoFormRef.value.validate((isValid: boolean) => {
     if (!isValid) {

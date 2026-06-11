@@ -67,7 +67,7 @@ import { DictionaryEnum } from "@/enums/system/dictionary.enum";
 import { useUserStore } from "@/stores";
 import UserAPI, { ChangePasswordParam } from "@/api/user";
 import { passwordComplex } from "@/utils/common";
-import { encryptPassword } from "@/utils/crypto";
+import { encrypt } from "@/utils/crypto";
 
 const router = useRouter();
 const route = useRoute();
@@ -156,8 +156,8 @@ async function handleSubmit() {
   loading.value = true;
   try {
     const params: ChangePasswordParam = {
-      oldPassword: await encryptPassword(formData.value.oldPassword),
-      newPassword: await encryptPassword(formData.value.newPassword),
+      oldPassword: encrypt.password(formData.value.oldPassword),
+      newPassword: encrypt.password(formData.value.newPassword),
       newPwdLevel: formData.value.newPwdLevel,
     };
     await UserAPI.updateSelfPassword(params);

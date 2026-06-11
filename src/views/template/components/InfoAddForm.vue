@@ -72,7 +72,7 @@ import { DictionaryEnum } from "@/enums/system/dictionary.enum";
 // import { useDictStore } from "@/stores";
 import { InstituteTreeDto } from "@/api/institute";
 import UserAPI, { UserAddParam } from "@/api/user";
-import { encryptPassword } from "@/utils/ctypto";
+import { encrypt } from "@/utils/crypto";
 
 /* ***************************** 参数定义 ********************************* */
 // 暴露给父级的自定义事件
@@ -177,7 +177,7 @@ const handleInfoSubmit = useDebounceFn(async () => {
     thirdId: infoFormData.value.thirdId,
     instituteId: infoFormData.value.instituteId,
   } as UserAddParam;
-  params.password = await encryptPassword(params.password || "");
+  params.password = encrypt.password(params.password || "");
   // console.log("handleInfoSubmit", params);
   infoFormRef.value.validate((isValid: boolean) => {
     if (!isValid) {
