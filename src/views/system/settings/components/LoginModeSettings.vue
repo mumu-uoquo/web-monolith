@@ -7,9 +7,9 @@
           class="login-mode-group"
           @change="handleModesChange"
         >
-          <el-checkbox label="password">账号密码</el-checkbox>
-          <el-checkbox label="sms">手机短信</el-checkbox>
-          <el-checkbox label="wechat">微信扫码</el-checkbox>
+          <el-checkbox value="password">账号密码</el-checkbox>
+          <el-checkbox value="sms">手机短信</el-checkbox>
+          <el-checkbox value="wechat">微信扫码</el-checkbox>
         </el-checkbox-group>
       </el-form-item>
 

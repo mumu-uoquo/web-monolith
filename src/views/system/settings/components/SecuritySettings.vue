@@ -14,10 +14,10 @@
 
       <el-form-item label="允许的字符类型">
         <el-checkbox-group v-model="allowedChars">
-          <el-checkbox label="uppercase">允许大写字母</el-checkbox>
-          <el-checkbox label="lowercase">允许小写字母</el-checkbox>
-          <el-checkbox label="digit">允许数字</el-checkbox>
-          <el-checkbox label="special">允许特殊字符</el-checkbox>
+          <el-checkbox value="uppercase">允许大写字母</el-checkbox>
+          <el-checkbox value="lowercase">允许小写字母</el-checkbox>
+          <el-checkbox value="digit">允许数字</el-checkbox>
+          <el-checkbox value="special">允许特殊字符</el-checkbox>
         </el-checkbox-group>
       </el-form-item>
 

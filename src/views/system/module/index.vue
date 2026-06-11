@@ -102,7 +102,6 @@ const treeMaxHeight = ref<string>("auto");
 function loadModuleTree() {
   AdminRoleAPI.listModuleByTree().then((data) => {
     moduleTreeData.value = data;
-    console.log("loadModuleTree", moduleTreeData.value);
     // 默认选中第一个节点
     if (!currentModuleInfo.value.id || currentModuleInfo.value.id == "") {
       getModuleInfo({ id: moduleTreeData.value[0].id });
