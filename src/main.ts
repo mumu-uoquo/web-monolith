@@ -18,17 +18,17 @@ import "animate.css";
 
 // ===== 核心配置 =====
 import { setupDirective } from "@/directives";
-import { setupI18n } from "@/plugins/modules/i18n";
 import { setupRouter } from "@/router";
 import { setupStore } from "@/stores";
+import { setupI18n } from "@/plugins/i18n";
 
 // ===== 全局组件 =====
 import * as ElementPlusIcons from "@element-plus/icons-vue";
 
 // ===== 第三方插件 =====
 import VXETable from "vxe-table";
-import { InstallCodeMirror } from "codemirror-editor-vue3";
 import { configureVxeTable } from "@/plugins/vxe-table";
+import { InstallCodeMirror } from "codemirror-editor-vue3";
 
 // ===== 路由守卫 =====
 import { setupPermissionGuard } from "@/router/permission";

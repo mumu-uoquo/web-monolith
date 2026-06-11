@@ -1,5 +1,5 @@
 import type { TranslateOptions } from "vue-i18n";
-import i18n from "@/plugins/modules/i18n";
+import i18n from "@/plugins/i18n";
 
 /**
  * 导出：路由标题翻译
