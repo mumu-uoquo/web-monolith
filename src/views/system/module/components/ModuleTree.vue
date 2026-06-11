@@ -137,25 +137,28 @@ onMounted(() => {
     background-color var(--el-transition-duration),
     color var(--el-transition-duration);
 }
-.menu-item * {
-  vertical-align: bottom;
-}
-.menu-item i {
-  color: inherit;
-}
-.menu-item .is-current {
-  color: var(--el-menu-active-color);
-}
 .menu-item:hover,
 .menu-item:focus {
   outline: none;
 }
-.menu-item [class^="el-icon"] {
-  width: var(--el-menu-icon-width);
-  margin-right: 5px;
-  font-size: 18px;
-  vertical-align: middle;
-  text-align: center;
+.menu-item {
+  .is-current {
+    color: var(--el-menu-active-color);
+  }
+
+  .el-icon {
+    width: 1em !important;
+    margin-right: 0 !important;
+    font-size: 18px;
+    color: currentcolor;
+  }
+
+  [class^="i-svg:"] {
+    width: 18px;
+    height: 18px;
+    font-size: 18px;
+    color: currentcolor !important;
+  }
 }
 /* 隐藏没有实际子元素的三角图标 */
 .menu-item :deep(.el-tree-node__expand-icon.is-leaf) {
