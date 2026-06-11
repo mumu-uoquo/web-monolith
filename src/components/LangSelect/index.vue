@@ -18,7 +18,7 @@
 
 <script setup lang="ts">
 import { useAppStore } from "@/stores";
-import { localesConfigs } from "@/plugins/modules/i18n";
+import { localesConfigs } from "@/plugins/i18n";
 
 defineProps({
   size: {

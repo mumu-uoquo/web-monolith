@@ -19,6 +19,7 @@
 </template>
 
 <script setup lang="ts">
+import { useRouter } from "vue-router";
 defineOptions({ name: "Page404" });
 const router = useRouter();
 const back = () => router.push("/");

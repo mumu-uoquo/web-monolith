@@ -20,6 +20,7 @@
 </template>
 
 <script setup lang="ts">
+import { useRouter } from "vue-router";
 defineOptions({ name: "Page403" });
 const router = useRouter();
 </script>

@@ -54,6 +54,7 @@
 </template>
 
 <script setup lang="ts">
+import { useRoute, useRouter } from "vue-router";
 import { formatDate } from "@/utils/format";
 import { DictionaryEnum } from "@/enums/system/dictionary.enum";
 import { useUserStoreHook } from "@/stores";
