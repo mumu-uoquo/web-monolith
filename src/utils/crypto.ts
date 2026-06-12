@@ -102,18 +102,19 @@ export const encrypt = {
   },
 
   /**
-   * RSA 公钥加密，返回 Base64 密文
+   * RSA 公钥加密，返回十六进制密文
    * @param str 明文
    * @param publicKey PEM 格式公钥
    */
   rsa(str: string, publicKey: string): string {
     const jsEncrypt = new JSEncrypt();
     jsEncrypt.setPublicKey(publicKey);
-    const result = jsEncrypt.encrypt(str);
-    if (result === false) {
+    const base64 = jsEncrypt.encrypt(str);
+    if (base64 === false) {
       throw new Error("RSA 加密失败，请检查公钥格式");
     }
-    return result;
+    // Base64 → Hex
+    return CryptoJS.enc.Base64.parse(base64).toString(CryptoJS.enc.Hex);
   },
 
   /**
@@ -175,13 +176,15 @@ export const decrypt = {
 
   /**
    * RSA 公钥解密（适用于服务端私钥加密、客户端公钥验证的场景）
-   * @param ciphertext Base64 密文
+   * @param hex 十六进制密文
    * @param publicKey PEM 格式公钥
    */
-  rsa(ciphertext: string, publicKey: string): string {
+  rsa(hex: string, publicKey: string): string {
     const jsEncrypt = new JSEncrypt();
     jsEncrypt.setPublicKey(publicKey);
-    const result = jsEncrypt.decrypt(ciphertext);
+    // Hex → Base64，再传给 JSEncrypt 解密
+    const base64 = CryptoJS.enc.Hex.parse(hex).toString(CryptoJS.enc.Base64);
+    const result = jsEncrypt.decrypt(base64);
     if (result === false) {
       throw new Error("RSA 解密失败，请检查公钥或密文");
     }

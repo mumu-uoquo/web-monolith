@@ -187,8 +187,6 @@ export const useSettingsStore = defineStore("setting", () => {
           _publicConfig.value.serverTimeDiff = serverTs - localMid;
         }
       }
-
-      console.log("_publicConfig", _publicConfig);
     } catch {
       // 加载失败不影响正常使用，保持默认空值
     }
