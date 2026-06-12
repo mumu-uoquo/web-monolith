@@ -4,6 +4,9 @@
       <el-form-item label="是否允许注册">
         <el-switch v-model="form.registerEnable" />
       </el-form-item>
+      <el-form-item label="开启水印">
+        <el-switch v-model="form.watermarkEnable" />
+      </el-form-item>
       <el-form-item label="系统标题" prop="title">
         <el-input v-model="form.title" placeholder="请输入系统标题" />
       </el-form-item>
@@ -23,6 +26,7 @@ import type { SettingSaveParam, SettingDto } from "@/api/system";
 
 interface BasicForm {
   registerEnable: boolean;
+  watermarkEnable: boolean;
   title: string;
 }
 
@@ -39,6 +43,11 @@ const CONFIG_MAP: Record<
     fromValue: (v) => v !== "false",
     toValue: (v) => String(v),
   },
+  "sys.watermark.enable": {
+    field: "watermarkEnable",
+    fromValue: (v) => v === "true",
+    toValue: (v) => String(v),
+  },
   "sys.title": {
     field: "title",
     fromValue: (v) => v ?? "",
@@ -48,6 +57,7 @@ const CONFIG_MAP: Record<
 
 const form = reactive<BasicForm>({
   registerEnable: true,
+  watermarkEnable: false,
   title: "",
 });
 
