@@ -10,6 +10,30 @@ import {
 } from "@/utils/theme";
 import { STORAGE_KEYS } from "@/constants";
 import { defaults } from "@/settings";
+import SystemAPI from "@/api/system";
+import { decrypt } from "@/utils/crypto";
+
+// ─────────────────────────────────────────────
+// 公共系统配置（内存中，每次 load() 重新获取）
+// ─────────────────────────────────────────────
+
+interface PublicConfig {
+  /** AES 密钥：security.aes.key */
+  aesKey: string;
+  /** RSA 公钥：security.rsa.public-key */
+  rsaPublicKey: string;
+  /** 本地与服务器的时间差（ms），正值表示服务器比本地快 */
+  serverTimeDiff: number;
+  /** 是否强制开启水印：sys.watermark.enable */
+  watermarkEnable: boolean;
+}
+
+const _publicConfig = ref<PublicConfig>({
+  aesKey: "",
+  rsaPublicKey: "",
+  serverTimeDiff: 0,
+  watermarkEnable: false,
+});
 
 export const useSettingsStore = defineStore("setting", () => {
   // 界面显示
@@ -108,6 +132,83 @@ export const useSettingsStore = defineStore("setting", () => {
     theme.value = defaults.theme;
   }
 
+  /**
+   * 加载公共系统配置
+   * - 清空现有缓存
+   * - 从服务端拉取 listPublicSettings
+   * - configValue 使用 taes 解密
+   * - 解析并暴露常用配置
+   */
+  async function loadServerSettings() {
+    // 清空现有缓存
+    _publicConfig.value = {
+      aesKey: "",
+      rsaPublicKey: "",
+      serverTimeDiff: 0,
+      watermarkEnable: false,
+    };
+
+    try {
+      const localTimeBefore = Date.now();
+      const settings = await SystemAPI.listPublicSettings();
+      const localTimeAfter = Date.now();
+
+      const get = (code: string) => {
+        const item = settings.find((s) => s.configCode === code);
+        if (!item?.configValue) return "";
+        // 对 configValue 做 taes 解密，解密失败时降级返回原文
+        try {
+          return decrypt.taes(item.configValue) || item.configValue;
+        } catch {
+          return item.configValue;
+        }
+      };
+
+      // AES 密钥
+      _publicConfig.value.aesKey = get("security.aes.key");
+
+      // RSA 公钥
+      _publicConfig.value.rsaPublicKey = get("security.rsa.public-key");
+
+      // 水印开关
+      const watermarkRaw = get("sys.watermark.enable");
+      _publicConfig.value.watermarkEnable = watermarkRaw === "true";
+      if (_publicConfig.value.watermarkEnable) {
+        showWatermark.value = true;
+      }
+
+      // 服务器时间差：server.time 存的是服务器时间戳（ms）
+      const serverTimeRaw = get("server.time");
+      if (serverTimeRaw) {
+        const serverTs = Number(serverTimeRaw);
+        if (!isNaN(serverTs)) {
+          // 用请求往返的中间点估算服务器时间
+          const localMid = Math.floor((localTimeBefore + localTimeAfter) / 2);
+          _publicConfig.value.serverTimeDiff = serverTs - localMid;
+        }
+      }
+
+      console.log("_publicConfig", _publicConfig);
+    } catch {
+      // 加载失败不影响正常使用，保持默认空值
+    }
+  }
+
+  // ── 常用配置的只读访问器 ──────────────────────────
+
+  /** AES 密钥（security.aes.key） */
+  const aesKey = computed(() => _publicConfig.value.aesKey);
+
+  /** RSA 公钥（security.rsa.public-key） */
+  const rsaPublicKey = computed(() => _publicConfig.value.rsaPublicKey);
+
+  /**
+   * 本地与服务器的时间差（ms）
+   * 正值表示服务器时间比本地快，使用示例：
+   *   const serverNow = Date.now() + settingsStore.serverTimeDiff
+   */
+  const serverTimeDiff = computed(() => _publicConfig.value.serverTimeDiff);
+
   return {
     settingsVisible,
     showTagsView,
@@ -122,5 +223,10 @@ export const useSettingsStore = defineStore("setting", () => {
     theme,
     resolvedTheme,
     resetSettings,
+    loadServerSettings,
+    // 常用系统配置
+    aesKey,
+    rsaPublicKey,
+    serverTimeDiff,
   };
 });

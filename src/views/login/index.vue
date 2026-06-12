@@ -187,7 +187,8 @@ onMounted(() => {
   AuthStorage.loadDeviceId();
   // 进入登录页面时，默认清除
   userStore.resetAllState();
-  // TODO 加载系统配置
+  // 加载系统公共配置（AES key、RSA 公钥、时间差等）
+  settingsStore.loadServerSettings();
 });
 </script>
 

@@ -12,9 +12,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, shallowRef } from "vue";
+import { ref, watch, shallowRef, onMounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import Page404 from "@/views/error/404.vue";
+import { useSettingsStore } from "@/stores";
 
 // 预加载所有动态页面组件
 const dynamicComponents: Record<string, any> = import.meta.glob([
@@ -28,6 +29,11 @@ const router = useRouter();
 const loading = ref(true);
 const pageData = ref<any>(null); // 页面数据
 const currentComponent = shallowRef(null); // 动态组件（浅层响应式，仅跟踪引用）
+
+// 加载系统公共配置（visitor 路由不经过登录页，需在此处加载）
+onMounted(() => {
+  useSettingsStore().loadServerSettings();
+});
 
 /**
  * 根据路径动态加载组件或数据
