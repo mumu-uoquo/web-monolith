@@ -300,7 +300,7 @@ const getFile = (): UploadFileDto => {
  * 设置文件列表
  */
 const setFile = (file: UploadFileDto) => {
-  const temp = Object.assign({}, file) as UploadFileInfo;
+  const temp = Object.assign({}, file) as unknown as UploadFileInfo;
   if (file) {
     temp.url = file!.showPath;
     temp.name = file!.fileName || "";

@@ -318,7 +318,7 @@ function submitAreaSave(row: AreaTableItem, params: AreaInfoParam) {
         .then((data) => {
           ElMessage.success("修改成功");
           row.isEdit = false;
-          row.areaName = row.newAreaName;
+          row.areaName = row.newAreaName ?? row.areaName;
           console.log("submitAreaSave ok", data);
           resolve(data);
         })
@@ -333,7 +333,7 @@ function submitAreaSave(row: AreaTableItem, params: AreaInfoParam) {
           ElMessage.success("新增成功");
           row.id = data;
           row.isEdit = false;
-          row.areaName = row.newAreaName;
+          row.areaName = row.newAreaName ?? row.areaName;
           console.log("submitAreaSave ok", data);
           resolve(data);
         })
@@ -408,7 +408,7 @@ const handleInfoSubmit = useDebounceFn(() => {
       return;
     }
     const idx = infoFormData.value.index;
-    const row = tableData.value[idx];
+    const row = tableData.value[idx!];
     row.newAreaName = infoFormData.value.areaName;
     const params = { ...infoFormData.value } as AreaInfoParam;
     submitAreaSave(row, params).then((_data) => {
@@ -427,7 +427,7 @@ function openDialog(index: number, param: AreaTableItem) {
   }
   Object.assign(infoFormData.value, param);
   infoFormData.value.index = index; // 临时存储表格行的索引
-  infoFormData.value.areaName = param.newAreaName;
+  infoFormData.value.areaName = param.newAreaName ?? "";
   dialogVisible.value = true;
 }
 
@@ -437,13 +437,13 @@ function openDialog(index: number, param: AreaTableItem) {
 function handleCloseDialog() {
   // 更新表格
   const idx = infoFormData.value.index;
-  const row = tableData.value[idx];
+  const row = tableData.value[idx!];
   console.log("row", dialogVisible.value, idx, row);
   if (row.id) {
     row.isEdit = false;
     row.newAreaName = row.areaName;
   } else {
-    tableData.value.splice(idx, 1);
+    tableData.value.splice(idx!, 1);
   }
   // 关闭弹窗
   dialogVisible.value = false;

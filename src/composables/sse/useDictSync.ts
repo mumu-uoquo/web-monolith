@@ -28,7 +28,7 @@ function createDictSyncComposable() {
       return;
     }
 
-    dictStore.removeDictItem(dictCode);
+    dictStore.clearDictionary();
 
     messageCallbacks.value.forEach((callback) => {
       try {

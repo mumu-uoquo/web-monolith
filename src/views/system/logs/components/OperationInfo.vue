@@ -171,7 +171,7 @@ const openDialog = async (data: BizEventRecordDto) => {
       dialogVisible.value = true;
       Object.assign(infoFormData.value, res);
       // 处理变更数据（提取 res.changeData中的change字段）
-      const tempData = res.changeData?.change;
+      const tempData = (res.changeData as any)?.change;
       if (tempData) {
         if (typeof tempData === "string") {
           changeData.value = JSON.parse(tempData);

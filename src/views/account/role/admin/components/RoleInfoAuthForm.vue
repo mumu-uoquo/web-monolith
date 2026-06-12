@@ -95,11 +95,11 @@ watch(
 /**
  * 节点筛选
  */
-const handleFilter: FilterNodeMethodFunction = (value: string, data: ModuleTreeDto) => {
+const handleFilter: FilterNodeMethodFunction = (value: string, data: any) => {
   if (!value) {
     return true;
   }
-  return data.moduleName!.indexOf(value) !== -1;
+  return (data as ModuleTreeDto).moduleName!.indexOf(value) !== -1;
 };
 /**
  * 节点单击（级联处理子节点和父节点）

@@ -60,7 +60,7 @@ import { Plus, CircleCloseFilled, RefreshLeft } from "@element-plus/icons-vue";
 import { UploadRawFile, UploadRequestOptions, UploadUserFile } from "element-plus";
 import DfsAPI, { UploadFileDto, UploadConfigDto } from "@/api/dfs";
 import FileUtil from "@/utils/file";
-import request from "@/utils/request";
+import { http } from "@/utils/http";
 
 /* ***************************** 参数定义 ********************************* */
 // 暴露给父级的自定义事件
@@ -180,7 +180,9 @@ async function handleUpload(options: UploadRequestOptions) {
     fileSize: file.size,
     fileMd5: "",
   });
-  const config: UploadConfigDto = await request.post(props.url, param);
+  const config: UploadConfigDto = await http.request<UploadConfigDto>("post", props.url, {
+    data: param,
+  });
 
   // 2. 计算分块列表
   const chunkList = config.chunkList || [];
@@ -350,7 +352,7 @@ const getFile = (): UploadFileDto => {
  * 设置文件列表
  */
 const setFile = (file: UploadFileDto) => {
-  const temp = Object.assign({}, file) as UploadFileInfo;
+  const temp = Object.assign({}, file) as unknown as UploadFileInfo;
   if (file) {
     temp.url = file!.showPath;
     temp.name = file!.fileName || "";

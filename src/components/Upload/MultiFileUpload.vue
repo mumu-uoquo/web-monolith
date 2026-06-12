@@ -29,8 +29,8 @@
       <div v-else>
         <!-- 缩略图（非图片时展现名称）-->
         <el-image
-          v-if="file.isPicture"
-          :src="file.showPath"
+          v-if="(file as any).isPicture"
+          :src="(file as any).showPath"
           fit="contain"
           class="el-upload-list__item-image"
         >
@@ -41,10 +41,10 @@
         <el-text v-else class="el-upload-list__item-name">{{ file.name }}</el-text>
         <!-- 操作按钮 -->
         <span class="el-upload-list__item-actions">
-          <span v-if="file.isPicture" @click="handlePreviewShown(index)">
+          <span v-if="(file as any).isPicture" @click="handlePreviewShown(index)">
             <el-icon><ZoomIn /></el-icon>
           </span>
-          <span v-else-if="file.showPath" @click="handlePreviewDown(index)">
+          <span v-else-if="(file as any).showPath" @click="handlePreviewDown(index)">
             <el-icon><Download /></el-icon>
           </span>
           <span @click="handleRemove(index)">
@@ -352,7 +352,7 @@ const setFileList = (list: UploadFileDto[]) => {
   }
   // 有值
   fileList.value = list.map((file) => {
-    const temp = Object.assign({}, file) as UploadFileInfo;
+    const temp = Object.assign({}, file) as unknown as UploadFileInfo;
     temp.url = file.showPath;
     temp.name = file.fileName || "";
     temp.fileId = file.id;

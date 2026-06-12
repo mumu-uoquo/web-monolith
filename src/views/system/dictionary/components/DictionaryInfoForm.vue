@@ -71,7 +71,7 @@
             :label="item.label"
             :value="item.value"
           >
-            <el-tag :type="item.value" size="small">{{ item.label }}</el-tag>
+            <el-tag :type="item.value as any" size="small">{{ item.label }}</el-tag>
           </el-option>
         </el-select>
       </el-form-item>

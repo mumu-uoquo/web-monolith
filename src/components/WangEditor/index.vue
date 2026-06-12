@@ -230,7 +230,7 @@ const simpleToolbarConfig = ref<Partial<IToolbarConfig>>({
   ],
 });
 // TODO 全屏时展示所有按钮
-const toolbarConfig: Partial<IToolbarConfig> = {};
+const toolbarConfig = ref<Partial<IToolbarConfig>>({});
 
 /* ***************************** 编辑器配置 ********************************* */
 // 更多详细配置看 https://www.wangeditor.com/v5/menu-config.html
@@ -327,7 +327,7 @@ const clearNotUseFile = () => {
   // 1. 编辑器里最终的图片列表
   const editorImageList: string[] = [];
   const imageList = editorRef.value.getElemsByType("image");
-  imageList.forEach((item) => {
+  imageList.forEach((item: any) => {
     editorImageList.push(item.src);
   });
   // 2. 查找被删除的图片

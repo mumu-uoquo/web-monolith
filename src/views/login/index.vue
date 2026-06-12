@@ -74,7 +74,7 @@
           </div>
 
           <component
-            :is="formComponents[component]"
+            :is="(formComponents as any)[component]"
             v-else
             :key="component"
             class="login-card__form"
@@ -142,7 +142,7 @@ function parseRedirect(): {
   path: string;
   queryParams: Record<string, string>;
 } {
-  const query: LocationQuery = route.query;
+  const query: Record<string, any> = route.query;
   const redirect = (query.redirect as string) ?? "/";
 
   const url = new URL(redirect, window.location.origin);
@@ -156,6 +156,7 @@ function parseRedirect(): {
   return { path, queryParams };
 }
 /* ***************************** 操作函数 ********************************* */
+type LayoutMap = "login" | "register" | "resetPwd" | "mfa";
 const component = ref<LayoutMap>("login");
 const mfaTempToken = ref<string>(""); // MFA 临时 token
 const formComponents = {

@@ -147,7 +147,9 @@
           width=""
           align="center"
           show-overflow-tooltip
-          :tooltip-formatter="({ row }) => row.userRoleList.map((item) => item.roleName).join(', ')"
+          :tooltip-formatter="
+            ({ row }: any) => row.userRoleList.map((item: any) => item.roleName).join(', ')
+          "
         >
           <template #default="{ row }">
             <el-tag v-for="item in row.userRoleList" :key="item.id" type="info">

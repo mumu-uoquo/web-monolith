@@ -322,7 +322,7 @@
 </template>
 
 <script setup lang="ts">
-import { hasPerm } from "@/utils/auth";
+import { hasAuth as hasPerm } from "@/directives/permission/index";
 import { useDateFormat, useThrottleFn } from "@vueuse/core";
 import {
   genFileId,

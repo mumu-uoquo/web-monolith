@@ -7,7 +7,7 @@
     <el-scrollbar :max-height="treeMaxHeight">
       <ElTree
         ref="treeRef"
-        :data="treeData"
+        :data="treeData as any[]"
         :props="{
           label: 'instituteName',
           children: 'children',

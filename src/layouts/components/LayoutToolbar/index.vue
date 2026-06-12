@@ -118,7 +118,7 @@ const isDesktop = computed(() => appStore.device === DeviceEnum.DESKTOP);
 
 /* ***************************** 多租户 ********************************* */
 // 是否显示租户选择
-const canSwitchTenant = computed(() => userStore.userInfo?.canSwitchTenant === true);
+const canSwitchTenant = computed(() => (userStore.userInfo as any)?.canSwitchTenant === true);
 const showTenantSwitcher = computed(() => {
   if (!canSwitchTenant.value) {
     return false;

@@ -1,4 +1,4 @@
-import request from "@/utils/request";
+import { http } from "@/utils/http";
 import type { NoticeQueryParams, NoticeForm, NoticeItem, NoticeDetail } from "./types";
 
 const NOTICE_BASE_URL = "/api/v1/notices";
@@ -6,49 +6,45 @@ const NOTICE_BASE_URL = "/api/v1/notices";
 const NoticeAPI = {
   /** 获取通知公告分页数据 */
   getPage(queryParams?: NoticeQueryParams) {
-    return request<any, PageResult<NoticeItem>>({
-      url: `${NOTICE_BASE_URL}`,
-      method: "get",
+    return http.request<PageResult<NoticeItem>>("get", `${NOTICE_BASE_URL}`, {
       params: queryParams,
     });
   },
   /** 获取通知公告表单数据 */
   getFormData(id: string) {
-    return request<any, NoticeForm>({ url: `${NOTICE_BASE_URL}/${id}/form`, method: "get" });
+    return http.request<NoticeForm>("get", `${NOTICE_BASE_URL}/${id}/form`);
   },
   /** 添加通知公告 */
   create(data: NoticeForm) {
-    return request({ url: `${NOTICE_BASE_URL}`, method: "post", data });
+    return http.request<string>("post", `${NOTICE_BASE_URL}`, { data });
   },
   /** 更新通知公告 */
   update(id: string, data: NoticeForm) {
-    return request({ url: `${NOTICE_BASE_URL}/${id}`, method: "put", data });
+    return http.request<string>("put", `${NOTICE_BASE_URL}/${id}`, { data });
   },
   /** 批量删除通知公告，多个以英文逗号(,)分割 */
   deleteByIds(ids: string) {
-    return request({ url: `${NOTICE_BASE_URL}/${ids}`, method: "delete" });
+    return http.request<string>("delete", `${NOTICE_BASE_URL}/${ids}`);
   },
   /** 发布通知 */
   publish(id: string) {
-    return request({ url: `${NOTICE_BASE_URL}/${id}/publish`, method: "put" });
+    return http.request<string>("put", `${NOTICE_BASE_URL}/${id}/publish`);
   },
   /** 撤回通知 */
   revoke(id: string) {
-    return request({ url: `${NOTICE_BASE_URL}/${id}/revoke`, method: "put" });
+    return http.request<string>("put", `${NOTICE_BASE_URL}/${id}/revoke`);
   },
   /** 查看通知 */
   getDetail(id: string) {
-    return request<any, NoticeDetail>({ url: `${NOTICE_BASE_URL}/${id}/detail`, method: "get" });
+    return http.request<NoticeDetail>("get", `${NOTICE_BASE_URL}/${id}/detail`);
   },
   /** 全部已读 */
   readAll() {
-    return request({ url: `${NOTICE_BASE_URL}/read-all`, method: "put" });
+    return http.request<string>("put", `${NOTICE_BASE_URL}/read-all`);
   },
   /** 获取我的通知分页列表 */
   getMyNoticePage(queryParams?: NoticeQueryParams) {
-    return request<any, PageResult<NoticeItem>>({
-      url: `${NOTICE_BASE_URL}/my`,
-      method: "get",
+    return http.request<PageResult<NoticeItem>>("get", `${NOTICE_BASE_URL}/my`, {
       params: queryParams,
     });
   },

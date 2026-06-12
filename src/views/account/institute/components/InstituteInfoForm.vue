@@ -170,9 +170,9 @@ const typeList = dictStore.listDictionary(DictionaryEnum.INSTITUTE_TYPE);
 /**
  * 机构筛选
  */
-function filterNodeMethod(value: string, data: InstituteTreeDto) {
-  // console.log("filterNodeMethod", value, data);
-  return !value ? true : data.instituteName!.includes(value);
+function filterNodeMethod(value: string, data: any) {
+  // console.log("filterNodeMethod", value, data)
+  return !value ? true : (data as InstituteTreeDto).instituteName!.includes(value);
 }
 
 /* ***************************** 表单信息 ********************************* */

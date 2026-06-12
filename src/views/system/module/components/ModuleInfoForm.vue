@@ -281,7 +281,7 @@ function handleParentChange(parentId: any) {
 /**
  * 模块类型改变
  */
-const changeModuleType = (val: string) => {
+const changeModuleType = (val: string | number | boolean | undefined) => {
   isMenu.value = val == DictionaryEnum.MODULE_TYPE_MENU;
 };
 

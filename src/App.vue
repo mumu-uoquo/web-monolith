@@ -47,7 +47,10 @@ const timestamp = ref(Date.now());
 const watermarkContent = computed(() => {
   // console.log("刷新水印：watermarkContent", Date.now(), settingsStore.showWatermark, defaultSettings.watermarkMode, userStore.userInfo.userName);
   // 不开启水印
-  if (!settingsStore.showWatermark || defaultSettings.watermarkMode === WatermarkMode.DISABLE) {
+  if (
+    !settingsStore.showWatermark ||
+    (defaultSettings.watermarkMode as string) === WatermarkMode.DISABLE
+  ) {
     return "";
   }
   // 当前路由不需要水印
@@ -56,9 +59,9 @@ const watermarkContent = computed(() => {
   }
   // 如果已经登录，则优先显示用户名
   if (userStore.userInfo.userName) {
-    if (defaultSettings.watermarkMode === WatermarkMode.ACCOUNT) {
+    if ((defaultSettings.watermarkMode as string) === WatermarkMode.ACCOUNT) {
       return `${userStore.userInfo.userName} ${userStore.userInfo.phone}`;
-    } else if (defaultSettings.watermarkMode === WatermarkMode.ACCOUNT_TIME) {
+    } else if ((defaultSettings.watermarkMode as string) === WatermarkMode.ACCOUNT_TIME) {
       return `${userStore.userInfo.userName} ${formatDate(timestamp.value)}`;
     }
   }
@@ -104,7 +107,7 @@ onMounted(() => {
   // 立即刷新水印
   refreshWatermark();
   // 每10秒刷新一次水印
-  if (defaultSettings.watermarkMode === WatermarkMode.ACCOUNT_TIME) {
+  if ((defaultSettings.watermarkMode as string) === WatermarkMode.ACCOUNT_TIME) {
     handleIntervalChange(10000);
   }
 });

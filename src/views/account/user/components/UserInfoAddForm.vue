@@ -264,9 +264,9 @@ function loadRoleList(instituteId: string) {
 /**
  * 机构筛选
  */
-function filterNodeMethod(value: string, data: InstituteTreeDto) {
+function filterNodeMethod(value: string, data: any) {
   // console.log("filterNodeMethod", value, data);
-  return !value ? true : data.instituteName!.includes(value);
+  return !value ? true : (data as InstituteTreeDto).instituteName!.includes(value);
 }
 /**
  * 机构选中：部门、角色、分组的联动

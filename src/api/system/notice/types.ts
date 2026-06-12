@@ -2,7 +2,11 @@
  * Notice 通知类型定义
  */
 
-import type { BaseQueryParams } from "@/api/common";
+/** 基础分页查询参数 */
+interface BaseQueryParams {
+  pageNum?: number;
+  pageSize?: number;
+}
 
 /** 通知分页查询参数 */
 export interface NoticeQueryParams extends BaseQueryParams {

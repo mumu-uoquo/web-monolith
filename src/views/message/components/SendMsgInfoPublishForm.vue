@@ -40,7 +40,7 @@
           </el-descriptions-item>
           <el-descriptions-item label="附件列表" label-align="right" :span="2">
             <FileListViewer
-              v-model="infoFormData.attachments"
+              v-model="infoFormData.attachments as any"
               :style="{ width: '80px', height: '80px' }"
               @on-download="handleDownloadAttachment"
             />

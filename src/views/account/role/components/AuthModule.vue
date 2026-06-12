@@ -158,11 +158,11 @@ watch(
     menuTreeRef.value!.filter(filterText.value);
   }
 );
-function handleFilter(value: string, data: ModuleTreeDto, _node: any): boolean {
+function handleFilter(value: string, data: any, _node: any): boolean {
   if (!value) {
     return true;
   }
-  return data.moduleName!.indexOf(value) !== -1;
+  return (data as ModuleTreeDto).moduleName!.indexOf(value) !== -1;
 }
 /**
  * 节点单击

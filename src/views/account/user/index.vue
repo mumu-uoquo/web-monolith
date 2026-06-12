@@ -151,7 +151,9 @@
           width=""
           align="center"
           show-overflow-tooltip
-          :tooltip-formatter="({ row }) => row.userRoleList.map((item) => item.roleName).join(', ')"
+          :tooltip-formatter="
+            ({ row }: any) => row.userRoleList.map((item: any) => item.roleName).join(', ')
+          "
         >
           <template #default="{ row }">
             <el-tag v-for="item in row.userRoleList" :key="item.id" type="info">
@@ -351,9 +353,9 @@ const loadInstitituteList = async () => {
 /**
  * 机构筛选
  */
-function filterNodeMethod(value: string, data: InstituteTreeDto) {
+function filterNodeMethod(value: string, data: any) {
   // console.log("filterNodeMethod", value, data);
-  return !value ? true : data.instituteName!.includes(value);
+  return !value ? true : (data as InstituteTreeDto).instituteName!.includes(value);
 }
 /**
  * 选中机构：部门联动

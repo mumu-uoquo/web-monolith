@@ -235,14 +235,20 @@ const loadInstitituteList = async () => {
 /**
  * 机构筛选
  */
-function filterNodeMethod(value: string, data: InstituteTreeDto) {
+function filterNodeMethod(value: string, data: any) {
   // console.log("filterNodeMethod", value, data);
-  return !value ? true : data.instituteName!.includes(value);
+  return !value ? true : (data as InstituteTreeDto).instituteName!.includes(value);
+}
+/**
+ * 选中机构：联动
+ */
+function handleInstituteSelect(_instituteId: string) {
+  // TODO 机构联动逻辑
 }
 
 /* ***************************** 搜索表单 ********************************* */
 const queryFormRef = ref(ElForm);
-const queryParams = reactive<UserListParam>({
+const queryParams = reactive<UserListParam & { status?: string }>({
   pageNum: 1,
   pageSize: 10,
   createTimeStart: "",

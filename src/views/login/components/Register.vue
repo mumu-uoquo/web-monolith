@@ -103,7 +103,7 @@ import type { FormInstance } from "element-plus";
 import { Lock } from "@element-plus/icons-vue";
 import { useI18n } from "vue-i18n";
 import AuthAPI from "@/api/auth";
-import type { LoginRequest } from "@/api/auth";
+import type { UserLoginParam } from "@/api/auth";
 
 const { t } = useI18n();
 
@@ -118,8 +118,12 @@ const isCapsLock = ref(false); // 是否大写锁定
 const captchaBase64 = ref(); // 验证码图片Base64字符串
 const isRead = ref(false);
 
-interface Model extends LoginRequest {
+interface Model extends UserLoginParam {
   confirmPassword: string;
+  username?: string;
+  captchaId?: string;
+  captchaCode?: string;
+  rememberMe?: boolean;
 }
 
 const model = ref<Model>({
@@ -185,8 +189,8 @@ const rules = computed(() => {
 const codeLoading = ref(false);
 function getCaptcha() {
   codeLoading.value = true;
-  AuthAPI.getCaptcha()
-    .then((data) => {
+  AuthAPI.getCaptcha({})
+    .then((data: any) => {
       model.value.captchaId = data.captchaId;
       captchaBase64.value = data.captchaBase64;
     })

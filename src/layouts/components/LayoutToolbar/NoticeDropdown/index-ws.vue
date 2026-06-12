@@ -87,29 +87,41 @@
 </template>
 
 <script setup lang="ts">
-import NoticeAPI, { NoticePageVO, NoticeDetailVO } from "@/api/system/notice";
+import NoticeAPI from "@/api/system/notice";
+import type { NoticeItem, NoticeDetail } from "@/api/system/notice";
 import router from "@/router";
+
+type NoticePageVO = NoticeItem;
+type NoticeDetailVO = NoticeDetail;
 
 const noticeList = ref<NoticePageVO[]>([]);
 const noticeDialogVisible = ref(false);
 const noticeDetail = ref<NoticeDetailVO | null>(null);
 
-import { useStomp } from "@/hooks/useStomp";
-const { subscribe, unsubscribe, isConnected } = useStomp();
+const { subscribe, unsubscribe, isConnected } = {
+  subscribe: (_: string, __: any) => {},
+  unsubscribe: (_: string) => {},
+  isConnected: ref(false),
+};
+// import { useStomp } from "@/hooks/useStomp"; // 模块暂未实现
 
 watch(
   () => isConnected.value,
   (connected) => {
     if (connected) {
-      subscribe("/user/queue/message", (message) => {
+      subscribe("/user/queue/message", (message: any) => {
         console.log("收到通知消息：", message);
         const data = JSON.parse(message.body);
         const id = data.id;
-        if (!noticeList.value.some((notice) => notice.id == id)) {
+        if (!noticeList.value.some((notice: NoticePageVO) => notice.id == id)) {
           noticeList.value.unshift({
             id,
             title: data.title,
+            content: "",
             type: data.type,
+            level: "",
+            publishStatus: 0,
+            isRead: 0,
             publishTime: data.publishTime,
           });
 
@@ -136,11 +148,11 @@ function featchMyNotice() {
 
 // 阅读通知公告
 function handleReadNotice(id: string) {
-  NoticeAPI.getDetail(id).then((data) => {
+  NoticeAPI.getDetail(id).then((data: any) => {
     noticeDialogVisible.value = true;
     noticeDetail.value = data;
     // 标记为已读
-    const index = noticeList.value.findIndex((notice) => notice.id === id);
+    const index = noticeList.value.findIndex((notice: NoticePageVO) => notice.id === id);
     if (index >= 0) {
       noticeList.value.splice(index, 1);
     }
