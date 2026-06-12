@@ -86,7 +86,7 @@
 
 <script setup lang="ts">
 import { User, Lock, Loading } from "@element-plus/icons-vue";
-import { useUserStore } from "@/stores";
+import { useUserStore, useSettingsStore } from "@/stores";
 import { encrypt } from "@/utils/crypto";
 import { AuthStorage } from "@/utils/auth";
 import AuthAPI, { type UserLoginParam } from "@/api/auth";
@@ -96,6 +96,7 @@ import AuthAPI, { type UserLoginParam } from "@/api/auth";
 const emits = defineEmits(["on-submit", "on-show-form"]);
 
 const userStore = useUserStore();
+const settingsStore = useSettingsStore();
 const loading = ref(false); // 按钮 loading 状态
 const isCapsLock = ref(false); // 是否大写锁定
 const captchaBase64 = ref(); // 验证码图片Base64字符串
@@ -158,7 +159,7 @@ const handleLoginSubmit = useDebounceFn(async () => {
     captcha: loginData.value.captcha,
   };
   try {
-    reqData.password = encrypt.password(reqData.password || "");
+    reqData.password = encrypt.password(reqData.password || "", settingsStore.rsaPublicKey);
     const userDto = await AuthAPI.accountLogin(reqData);
     AuthStorage.setRememberMe(loginData.value.rememberMe);
     if (userDto.totpStatus === "enabled") {

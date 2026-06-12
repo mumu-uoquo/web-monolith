@@ -70,9 +70,12 @@
 import type { FormRules } from "element-plus";
 import { DictionaryEnum } from "@/enums/system/dictionary.enum";
 // import { useDictStore } from "@/stores";
+import { useSettingsStore } from "@/stores";
 import { InstituteTreeDto } from "@/api/institute";
 import UserAPI, { UserAddParam } from "@/api/user";
 import { encrypt } from "@/utils/crypto";
+
+const settingsStore = useSettingsStore();
 
 /* ***************************** 参数定义 ********************************* */
 // 暴露给父级的自定义事件
@@ -177,7 +180,7 @@ const handleInfoSubmit = useDebounceFn(async () => {
     thirdId: infoFormData.value.thirdId,
     instituteId: infoFormData.value.instituteId,
   } as UserAddParam;
-  params.password = encrypt.password(params.password || "");
+  params.password = encrypt.password(params.password || "", settingsStore.rsaPublicKey);
   // console.log("handleInfoSubmit", params);
   infoFormRef.value.validate((isValid: boolean) => {
     if (!isValid) {

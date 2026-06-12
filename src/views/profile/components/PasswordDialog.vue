@@ -62,9 +62,12 @@ import { ref, reactive } from "vue";
 import { ElMessage } from "element-plus";
 import type { FormInstance, FormItemRule } from "element-plus";
 import { DictionaryEnum } from "@/enums/system/dictionary.enum";
+import { useSettingsStore } from "@/stores";
 import UserAPI, { ChangePasswordParam } from "@/api/user";
 import { passwordComplex } from "@/utils/common";
 import { encrypt } from "@/utils/crypto";
+
+const settingsStore = useSettingsStore();
 
 /* ***************************** 参数定义 ********************************* */
 interface Props {
@@ -189,8 +192,8 @@ async function handleSubmit() {
   submitting.value = true;
   try {
     const params: ChangePasswordParam = {
-      oldPassword: encrypt.password(formModel.oldPassword),
-      newPassword: encrypt.password(formModel.newPassword),
+      oldPassword: encrypt.password(formModel.oldPassword, settingsStore.rsaPublicKey),
+      newPassword: encrypt.password(formModel.newPassword, settingsStore.rsaPublicKey),
       newPwdLevel: formModel.newPwdLevel,
     };
     await UserAPI.updateSelfPassword(params);

@@ -181,6 +181,7 @@ import { ElMessage } from "element-plus";
 import type { FormRules } from "element-plus";
 import { useDebounceFn } from "@vueuse/core";
 import { DictionaryEnum } from "@/enums/system/dictionary.enum";
+import { useSettingsStore } from "@/stores";
 import InstituteAPI, { InstituteListParam, InstituteInfoDto } from "@/api/institute";
 import DepartmentAPI, { DepartmentTreeDto } from "@/api/department";
 import UserAPI, { GroupDto } from "@/api/user";
@@ -188,6 +189,8 @@ import RoleAPI, { RoleInfoDto } from "@/api/role";
 import AdminUserAPI, { UserAddParam } from "@/api/adminUser";
 import { passwordComplex } from "@/utils/common";
 import { encrypt } from "@/utils/crypto";
+
+const settingsStore = useSettingsStore();
 
 /* ***************************** 参数定义 ********************************* */
 // 暴露给父级的自定义事件
@@ -408,7 +411,7 @@ const handleInfoSubmit = useDebounceFn(async () => {
     ],
     userGroupIdList: infoFormData.value.userGroupIdList,
   } as UserAddParam;
-  params.password = encrypt.password(params.password || "");
+  params.password = encrypt.password(params.password || "", settingsStore.rsaPublicKey);
   // console.log("handleInfoSubmit", params);
   infoFormRef.value.validate((isValid: boolean) => {
     if (!isValid) {

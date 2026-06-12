@@ -117,13 +117,26 @@ export const encrypt = {
   },
 
   /**
-   * 密码加密：先 MD5，再用时间因子（5 秒粒度）作为 AES 密钥加密
-   * 原 encryptPassword
+   * 密码加密：
+   * 1. 先对密码做 MD5 处理，避免明文传输
+   * 2. 若提供了 RSA 公钥，则用 RSA 加密（安全性更高）
+   * 3. 否则降级为 taes（时间因子 AES）加密
    * @param password 明文密码
+   * @param rsaPublicKey RSA 公钥（PEM 格式），来自 settingsStore.rsaPublicKey
    */
-  password(password: string): string {
+  password(password: string, rsaPublicKey?: string): string {
     if (!password) return "";
-    return _aesEncrypt(_md5(password), String(_getTimedKey()));
+    const hashed = _md5(password);
+    // 优先尝试 RSA 加密
+    if (rsaPublicKey) {
+      try {
+        return encrypt.rsa(hashed, rsaPublicKey);
+      } catch {
+        // RSA 加密失败，降级到 taes
+      }
+    }
+    // 降级：taes 加密
+    return _aesEncrypt(hashed, String(_getTimedKey()));
   },
 };
 

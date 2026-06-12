@@ -64,7 +64,7 @@ import { ElMessage, ElMessageBox } from "element-plus";
 import type { FormInstance, FormRules } from "element-plus";
 import { useRouter, useRoute } from "vue-router";
 import { DictionaryEnum } from "@/enums/system/dictionary.enum";
-import { useUserStore } from "@/stores";
+import { useUserStore, useSettingsStore } from "@/stores";
 import UserAPI, { ChangePasswordParam } from "@/api/user";
 import { passwordComplex } from "@/utils/common";
 import { encrypt } from "@/utils/crypto";
@@ -72,6 +72,7 @@ import { encrypt } from "@/utils/crypto";
 const router = useRouter();
 const route = useRoute();
 const userStore = useUserStore();
+const settingsStore = useSettingsStore();
 
 const dialogVisible = ref(false);
 const loading = ref(false);
@@ -156,8 +157,8 @@ async function handleSubmit() {
   loading.value = true;
   try {
     const params: ChangePasswordParam = {
-      oldPassword: encrypt.password(formData.value.oldPassword),
-      newPassword: encrypt.password(formData.value.newPassword),
+      oldPassword: encrypt.password(formData.value.oldPassword, settingsStore.rsaPublicKey),
+      newPassword: encrypt.password(formData.value.newPassword, settingsStore.rsaPublicKey),
       newPwdLevel: formData.value.newPwdLevel,
     };
     await UserAPI.updateSelfPassword(params);
