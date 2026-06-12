@@ -4,7 +4,14 @@ import type PageContent from "./PageContent.vue";
 import type PageModal from "./PageModal.vue";
 import type PageSearch from "./PageSearch.vue";
 import type { CSSProperties } from "vue";
-import type { PageResult } from "@/api/common";
+
+/** 分页数据结构（仅分页接口） */
+export interface PageResult<T> {
+  /** 数据列表 */
+  list: T[];
+  /** 总记录数 */
+  total: number;
+}
 
 export type PageSearchInstance = InstanceType<typeof PageSearch>;
 export type PageContentInstance = InstanceType<typeof PageContent>;

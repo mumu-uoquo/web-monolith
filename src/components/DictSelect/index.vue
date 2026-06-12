@@ -117,7 +117,7 @@ function handleChange(val: any) {
 
 // 获取字典数据
 onMounted(async () => {
-  await dictStore.loadDictItems(props.code);
-  options.value = dictStore.getDictItems(props.code);
+  await dictStore.loadDictionary(props.code);
+  options.value = dictStore.listDictionary(props.code);
 });
 </script>
