@@ -55,6 +55,22 @@ export default defineConfig(({ mode }: ConfigEnv): UserConfig => {
           // 代理目标真实接口地址：https://api.youlai.tech
           target: env.VITE_APP_API_URL,
           rewrite: (path: string) => path.replace(new RegExp(`^${env.VITE_APP_BASE_API}`), ""),
+          // SSE 长连接配置：禁用代理超时，保持连接不被中断
+          timeout: 0,
+          proxyTimeout: 0,
+          configure: (proxy) => {
+            proxy.on("proxyReq", (proxyReq) => {
+              // 关闭 HTTP keep-alive 在 SSE 场景下对代理的干扰
+              proxyReq.setHeader("Connection", "keep-alive");
+            });
+            proxy.on("proxyRes", (proxyRes) => {
+              // 确保 SSE 响应头透传，不被代理缓冲
+              if (proxyRes.headers["content-type"]?.includes("text/event-stream")) {
+                proxyRes.headers["cache-control"] = "no-cache";
+                proxyRes.headers["x-accel-buffering"] = "no";
+              }
+            });
+          },
         },
       },
     },
