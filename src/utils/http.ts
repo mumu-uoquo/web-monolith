@@ -14,11 +14,57 @@ import FileUtil from "./file";
 import { AuthStorage, redirectToLogin } from "./auth";
 import { guid } from "./common";
 import { encrypt } from "./crypto";
+import { STORAGE_KEYS } from "@/constants";
 
 interface OriginalRequest {
   config: AxiosRequestConfig;
   resolve: (value: any) => void;
   reject: (reason?: any) => void;
+}
+
+/**
+ * 生成签名相关信息
+ */
+export function generateSignature(param?: Record<string, any>, body?: any): Record<string, string> {
+  const nonce = guid();
+  const token = AuthStorage.getAccessToken();
+  const appid = AuthStorage.getAppkey();
+  const secret = AuthStorage.getSecret();
+  const device = AuthStorage.getDevcieId();
+  // 从 localStorage 读取用户选择的语言，未设置时降级为 zh-CN
+  const language = localStorage.getItem(STORAGE_KEYS.LANGUAGE) ?? "zh-CN";
+  const time = new Date().getTime() + "";
+  const prefix = appid + token + language + nonce + device + time;
+  // 参数处理：将 query params 按 key 字典序排序后，顺次拼接 key 和 value
+  // 例如：{ b: "2", a: "1" } → "a1b2"
+  // value 为 null / undefined 时以空字符串参与拼接
+  let paramStr = "";
+  if (param && typeof param === "object") {
+    paramStr = Object.keys(param)
+      .sort()
+      .map((k) => `${k}${param[k] ?? ""}`)
+      .join("");
+  }
+  // 消息体处理：保持原始字段顺序序列化
+  let bodyStr = "";
+  if (body) {
+    if (typeof body === "string") {
+      bodyStr = body;
+    } else {
+      bodyStr = JSON.stringify(body);
+    }
+  }
+  const signature = encrypt.md5(prefix + paramStr + bodyStr + secret);
+
+  return {
+    token,
+    nonce,
+    appid,
+    timestamp: time,
+    "device-id": device,
+    "user-language": language,
+    "signature-app": signature,
+  };
 }
 
 class AxiosWithTokenRefresh {
@@ -32,8 +78,6 @@ class AxiosWithTokenRefresh {
   private isRefreshing: boolean;
   private refreshTimer: any;
   private refreshPromise: Promise<any> | null; // 存储刷新 token 的 Promise
-
-  private toLoginTimer: any;
 
   constructor(config: AxiosRequestConfig = {}) {
     // 基础配置
@@ -54,7 +98,6 @@ class AxiosWithTokenRefresh {
     this.isRefreshing = false;
     this.refreshTimer = null;
     this.refreshPromise = null;
-    this.toLoginTimer = null;
 
     // 初始化拦截器
     this.httpRequestInterceptors();
@@ -71,39 +114,20 @@ class AxiosWithTokenRefresh {
   /**
    * 生成请求签名
    */
-  private generateSignature(config: InternalAxiosRequestConfig) {
-    const accessToken = AuthStorage.getAccessToken();
-    const appkey = AuthStorage.getAppkey();
-    const secret = AuthStorage.getSecret();
-    const device = AuthStorage.getDevcieId();
-    const language = "zh-CN";
-    const nonce = guid();
-    const time = Date.now();
+  private setSignHeader(config: InternalAxiosRequestConfig) {
+    const signHeader = generateSignature(config.params, config.data);
+    const token = signHeader["token"];
     // 自定义请求头
-    if (accessToken) {
-      config.headers.Authorization = `Bearer ${accessToken}`;
-      config.headers["token"] = accessToken;
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+      config.headers["token"] = token;
     }
-    config.headers["appid"] = appkey;
-    config.headers["nonce"] = nonce;
-    config.headers["device-id"] = device;
-    config.headers["timestamp"] = time;
-    config.headers["user-language"] = language;
-
-    const prefix = appkey + accessToken + language + nonce + device + time;
-    // 参数处理
-    const param = ""; // TODO 按字典排序拼接
-    // 消息体处理
-    let body = "";
-    if (config.data) {
-      if (typeof config.data === "string") {
-        body = config.data;
-      } else {
-        body = JSON.stringify(config.data);
-      }
-    }
-    const sign = encrypt.md5(prefix + param + body + secret);
-    config.headers["signature-app"] = sign;
+    config.headers["appid"] = signHeader["appid"];
+    config.headers["nonce"] = signHeader["nonce"];
+    config.headers["device-id"] = signHeader["device-id"];
+    config.headers["timestamp"] = signHeader["timestamp"];
+    config.headers["user-language"] = signHeader["user-language"];
+    config.headers["signature-app"] = signHeader["signature-app"];
   }
 
   /**
@@ -171,7 +195,7 @@ class AxiosWithTokenRefresh {
         request.config.url,
         request.config.data
       );
-      this.generateSignature(request.config);
+      this.setSignHeader(request.config);
       if (request.config._retry) {
         request.resolve(this.instance(request.config));
       } else {
@@ -243,7 +267,7 @@ class AxiosWithTokenRefresh {
           return this.addToRequestQueue(config);
         }
         // 2. 正常请求，添加签名
-        this.generateSignature(config);
+        this.setSignHeader(config);
         this._debug("请求开始：", config.headers?.logid, config.url, config.data);
         return Promise.resolve(config);
       },
