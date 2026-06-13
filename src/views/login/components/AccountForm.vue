@@ -197,10 +197,14 @@ function getCaptcha() {
 // 全局监听 mousedown 和 keydown，实时同步 CapsLock 状态
 // mousedown 早于 focus 触发，能捕获触发 focus 的那次点击
 const onMousedown = (e: MouseEvent) => {
-  isCapsLock.value = e.getModifierState("CapsLock");
+  if (typeof e.getModifierState === "function") {
+    isCapsLock.value = e.getModifierState("CapsLock");
+  }
 };
 const onKeydown = (e: KeyboardEvent) => {
-  isCapsLock.value = e.getModifierState("CapsLock");
+  if (typeof e.getModifierState === "function") {
+    isCapsLock.value = e.getModifierState("CapsLock");
+  }
 };
 onMounted(() => {
   window.addEventListener("mousedown", onMousedown);
