@@ -1,6 +1,4 @@
 import { AuthStorage } from "@/utils/auth";
-import { guid } from "@/utils/common";
-import { encrypt } from "@/utils/crypto";
 import { generateSignature } from "@/utils/http";
 import { USER_BASE_URL } from "@/api/sse";
 
@@ -50,8 +48,9 @@ function createSseConnection(options: UseSseOptions = {}) {
 
   const eventHandlers = new Map<string, Set<EventHandler>>();
 
-  const log = (...args: any[]) => console.log("[SSE]", ...args);
-  const logError = (...args: any[]) => console.error("[SSE]", ...args);
+  const sseId = String(new Date().getTime());
+  const log = (...args: any[]) => console.log(`[SSE-${sseId}]`, ...args);
+  const logError = (...args: any[]) => console.error(`[SSE-${sseId}]`, ...args);
 
   const clearTimer = (timer: typeof connectionTimeoutTimer) => {
     if (timer) {

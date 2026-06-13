@@ -16,6 +16,7 @@ import {
 import { AuthStorage } from "@/utils/auth";
 import { guid } from "@/utils/common";
 import { encrypt } from "@/utils/crypto";
+import { STORAGE_KEYS } from "@/constants";
 import { ResultEnum } from "@/enums/system/result.enum";
 import { useUserStoreHook } from "@/stores";
 import SseAPI from "@/api/sse";
@@ -132,7 +133,8 @@ function getSignHeader(body: any) {
   const appid = AuthStorage.getAppkey();
   const secret = AuthStorage.getSecret();
   const device = AuthStorage.getDevcieId();
-  const language = "zh-CN";
+  // 从 localStorage 读取用户选择的语言，未设置时降级为 zh-CN
+  const language = localStorage.getItem(STORAGE_KEYS.LANGUAGE) ?? "zh-CN";
   const time = new Date().getTime() + "";
   const prefix = appid + token + language + nonce + device + time;
   const param = "";

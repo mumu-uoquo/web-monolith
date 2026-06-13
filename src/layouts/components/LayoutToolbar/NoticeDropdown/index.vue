@@ -18,13 +18,14 @@
             <el-tab-pane :label="formatTabHeader('消息', messageList.length)" name="message">
               <NoticeList :list="messageList" @on-show-detail="handleReadNotice" />
             </el-tab-pane>
-            <el-tab-pane :label="formatTabHeader('任务', totoList.length)" name="todo">
-              <NoticeList :list="totoList" @on-show-detail="handleReadNotice" />
+            <el-tab-pane :label="formatTabHeader('任务', todoList.length)" name="todo">
+              <NoticeList :list="todoList" @on-show-detail="handleReadNotice" />
             </el-tab-pane>
           </el-tabs>
         </el-dropdown-menu>
       </template>
     </el-dropdown>
+
     <!-- 消息详情 -->
     <el-dialog
       v-model="detailVisible"
@@ -54,85 +55,21 @@
 </template>
 
 <script setup lang="ts">
-import { useRoute, useRouter } from "vue-router";
 import { formatDate } from "@/utils/format";
 import { DictionaryEnum } from "@/enums/system/dictionary.enum";
-import { useUserStoreHook } from "@/stores";
-import { useFetchEventSource } from "@/composables/sse/useEventSource";
-import MessageAPI, { MsgInfoViewDto } from "@/api/message";
+import { useNoticeSync } from "@/composables/sse";
+import MessageAPI, { type MsgInfoViewDto } from "@/api/message";
 import NoticeList from "./NoticeList.vue";
 
 /* ***************************** 实时消息 ********************************* */
-// 采用SSE订阅消息
-const apiHost = import.meta.env.VITE_APP_API_URL || "";
-const baseURL = ""; // import.meta.env.VITE_APP_BASE_API || "";
-const url = apiHost + baseURL + "/health/api/platform/v1/message/sse/subscribe";
-const { connect, disconnect } = useFetchEventSource(url, {
-  onMessage(message) {
-    let data;
-    try {
-      data = JSON.parse(message.data);
-    } catch (_e) {
-      data = message.data;
-    }
-    if (message.event === "HEARTBEAT") {
-      console.info("定时心跳包：", new Date(), data);
-    } else if (message.event === "WARNING") {
-      handleOnWarning(data);
-    } else if (message.event === "MESSAGE") {
-      handleOnMessage(data);
-    } else if (message.event) {
-      console.warn("未定义消息：", data);
-    } else {
-      console.info("无事件消息：", data);
-    }
-  },
-});
+const noticeSync = useNoticeSync();
 
 /**
- * 异常警告（目前主要是被踢下线）
+ * 推入消息到对应列表，重复则忽略，新消息弹出通知
  */
-function handleOnWarning(data: any) {
-  ElNotification({
-    title: "异常警告",
-    message: data.messageContent,
-    type: "error",
-    position: "bottom-right",
-    showClose: false,
-    onClose: () => {
-      // 跳转至登录页面
-      useUserStoreHook()
-        .resetAllState()
-        .then(() => {
-          router.push(`/login?redirect=${route.fullPath}`);
-        });
-    },
-  });
-}
-
-/**
- * 业务信息（如通知公告、系统消息、代办任务）
- */
-function handleOnMessage(data: MsgInfoViewDto) {
-  // 消息存在则忽略
-  const messageId = data.messageId;
-  if (DictionaryEnum.MESSAGE_CATEGORY_NOTICE === data.messageType) {
-    if (notifyList.value.some((item) => item.messageId == messageId)) {
-      return;
-    }
-    notifyList.value.push(data);
-  } else if (DictionaryEnum.MESSAGE_CATEGORY_SYSTEM === data.messageType) {
-    if (messageList.value.some((item) => item.messageId == messageId)) {
-      return;
-    }
-    messageList.value.push(data);
-  } else if (DictionaryEnum.MESSAGE_CATEGORY_TODO === data.messageType) {
-    if (totoList.value.some((item) => item.messageId == messageId)) {
-      return;
-    }
-    totoList.value.push(data);
-  }
-  // 消息不存在时，弹出提醒
+function pushIfAbsent(list: MsgInfoViewDto[], data: MsgInfoViewDto) {
+  if (list.some((item) => item.messageId === data.messageId)) return;
+  list.push(data);
   noticeCount.value += 1;
   ElNotification({
     title: "您收到一条新的消息！",
@@ -144,10 +81,11 @@ function handleOnMessage(data: MsgInfoViewDto) {
 
 /* ***************************** 消息列表 ********************************* */
 const activeName = ref("notify");
-const noticeCount = ref<number>(0); // 总消息数量
-const notifyList = ref<MsgInfoViewDto[]>([]); // 通知列表
-const messageList = ref<MsgInfoViewDto[]>([]); // 消息列表
-const totoList = ref<MsgInfoViewDto[]>([]); // 待办任务列表
+const noticeCount = ref<number>(0);
+const notifyList = ref<MsgInfoViewDto[]>([]);
+const messageList = ref<MsgInfoViewDto[]>([]);
+const todoList = ref<MsgInfoViewDto[]>([]);
+
 /**
  * 获取我的未读消息
  */
@@ -157,6 +95,7 @@ function featchMyNotice() {
     parseNoticeList(data || []);
   });
 }
+
 /**
  * 解析消息列表
  */
@@ -167,18 +106,20 @@ function parseNoticeList(list: MsgInfoViewDto[]) {
   messageList.value = list.filter(
     (item) => DictionaryEnum.MESSAGE_CATEGORY_SYSTEM === item.messageType
   );
-  totoList.value = list.filter((item) => DictionaryEnum.MESSAGE_CATEGORY_TODO === item.messageType);
+  todoList.value = list.filter((item) => DictionaryEnum.MESSAGE_CATEGORY_TODO === item.messageType);
 }
+
 /**
  * 格式化标签名称
  */
 function formatTabHeader(name: string, count: number) {
-  return count == 0 ? `${name}` : `${name} (${count})`;
+  return count === 0 ? name : `${name} (${count})`;
 }
 
 /* ***************************** 消息详情 ********************************* */
 const detailVisible = ref(false);
 const detailInfo = ref<MsgInfoViewDto | null>(null);
+
 /**
  * 阅读通知公告
  */
@@ -186,53 +127,28 @@ function handleReadNotice(messageId: string) {
   MessageAPI.viewMessage({ id: messageId }).then((data) => {
     detailVisible.value = true;
     detailInfo.value = data;
-    // // 标记为已读
-    // const index = noticeList.value.findIndex((notice) => notice.messageId === messageId);
-    // if (index >= 0) {
-    //   noticeList.value.splice(index, 1);
-    // }
   });
 }
 
-/* ***************************** 其他操作 ********************************* */
-const route = useRoute();
-const router = useRouter();
-// /**
-//  * 查看更多
-//  */
-// function handleViewMoreNotice() {
-//   router.push({ path: "/message" });
-// }
-
-// /**
-//  * 全部已读
-//  */
-// function handleMarkAllAsRead() {
-//   MessageAPI.markMessageReadAll().then(() => {
-//     noticeList.value = [];
-//   });
-// }
-
 /* ***************************** 监听器等 ********************************* */
-/**
- * 页面加载时，获取我的未读消息，并建立SSE链接
- */
+// SSE 消息订阅
+let unsubscribes: (() => void)[] = [];
+
 onMounted(() => {
   featchMyNotice();
-  // 延迟5秒后再加载，原因：
-  // 1. 优先保证其他业务的请求连接
-  // 2. 留出时间给服务端处理同账号的其他SSE连接
-  setTimeout(() => {
-    connect();
-    console.info("页面加载时，建立SSE链接");
-  }, 5000);
+  // 初始化 SSE 事件监听，并订阅三类业务消息
+  noticeSync.initialize();
+  unsubscribes = [
+    noticeSync.onNotify((data) => pushIfAbsent(notifyList.value, data)),
+    noticeSync.onMessage((data) => pushIfAbsent(messageList.value, data)),
+    noticeSync.onTodo((data) => pushIfAbsent(todoList.value, data)),
+  ];
 });
-/**
- * 页面销毁时，断开SSE连接
- */
+
 onBeforeUnmount(() => {
-  console.info("页面销毁时，断开SSE连接");
-  disconnect();
+  unsubscribes.forEach((unsub) => unsub());
+  unsubscribes = [];
+  noticeSync.cleanup();
 });
 </script>
 

@@ -1,32 +1,21 @@
-import { useDictSync } from "./useDictSync";
-import { useOnlineCount } from "./useOnlineCount";
-import { cleanupSse } from "./useSse";
+import { useSse } from "./useSse";
 
 /**
- * 初始化所有 SSE 服务
+ * 登录成功后建立 SSE 连接
+ * SSE 事件的注册/注销由各使用组件通过 initialize()/cleanup() 自行管理
  */
-export function setupSse() {
-  const dictSync = useDictSync();
-  dictSync.initialize();
-
-  const onlineCount = useOnlineCount();
-  onlineCount.initialize();
+export function connectSse() {
+  useSse().connect();
 }
 
 /**
- * 清理所有 SSE 连接
+ * 退出登录时断开 SSE 连接
+ * 仅断开网络连接，不清理事件订阅（由各组件在 onBeforeUnmount 里 cleanup()）
  */
-export function cleanupSseServices() {
-  const dictSync = useDictSync();
-  dictSync.cleanup();
-
-  const onlineCount = useOnlineCount();
-  onlineCount.cleanup();
-
-  cleanupSse();
+export function disconnectSse() {
+  useSse().disconnect();
 }
 
-export { useDictSync } from "./useDictSync";
-export { useOnlineCount } from "./useOnlineCount";
-export { useSse, cleanupSse, SseConnectionState } from "./useSse";
-export type { DictMessage, DictChangeMessage, DictChangeCallback } from "./useDictSync";
+export { useSse, SseConnectionState } from "./useSse";
+export { useNoticeSync } from "./useNoticeSync";
+export type { NoticeCallback } from "./useNoticeSync";

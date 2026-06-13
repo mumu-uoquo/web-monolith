@@ -92,7 +92,7 @@ import { defaults } from "@/settings";
 import { DeviceEnum, SidebarColor, ThemeMode, LayoutMode } from "@/enums";
 import { useAppStore, useSettingsStore, useUserStore } from "@/stores";
 import type { UserAuthDto, UserRoleDto } from "@/api/auth";
-
+import { disconnectSse } from "@/composables/sse";
 // 导入子组件
 import CommandPalette from "./CommandPalette/index.vue";
 import Fullscreen from "./Fullscreen/index.vue";
@@ -185,6 +185,8 @@ function logout() {
     type: "warning",
     lockScroll: false,
   }).then(() => {
+    // 断开 SSE 连接（事件订阅由各组件自行 cleanup）
+    disconnectSse();
     userStore.logout().finally(() => {
       // 无论退出接口是否正常响应，都跳转到登录页面
       // 若当前已在 404/401 等错误页，退出后不再跳回错误页

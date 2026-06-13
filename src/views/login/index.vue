@@ -98,7 +98,7 @@ import type { FormInstance } from "element-plus";
 import router from "@/router";
 import { useSettingsStore, useUserStore, useDictStore } from "@/stores";
 import { AuthStorage } from "@/utils/auth";
-
+import { connectSse } from "@/composables/sse";
 import logo from "@/assets/images/logo.png";
 import { appConfig } from "@/settings";
 
@@ -128,6 +128,8 @@ async function handleLoginSuccess() {
   dictStore.loadDictionary(null);
   // 20260517：登录时已经将用户信息缓存本地，没必要再次获取
   // await userStore.getUserInfo();
+  // 登录成功后建立 SSE 连接
+  connectSse();
   // 跳转到登录前的页面
   const { path, queryParams } = parseRedirect();
   router.push({ path, query: queryParams });
