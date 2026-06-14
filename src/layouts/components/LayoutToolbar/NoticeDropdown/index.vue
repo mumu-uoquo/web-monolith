@@ -1,5 +1,14 @@
 <template>
-  <div class="notice">
+  <!-- 小屏模式：仅图标 + 数量，点击跳转消息页 -->
+  <div v-if="mobile" class="notice notice--mobile" @click="router.push('/message/receiver')">
+    <el-badge v-if="noticeCount > 0" :value="noticeCount" :max="99" :offset="[0, 4]">
+      <el-icon><Bell /></el-icon>
+    </el-badge>
+    <el-icon v-else><Bell /></el-icon>
+  </div>
+
+  <!-- 桌面模式：下拉面板 + 消息详情 -->
+  <div v-else class="notice">
     <el-dropdown class="h-full items-center justify-center" trigger="click">
       <!-- 消息图标 -->
       <el-badge v-if="noticeCount > 0" :offset="[0, 15]" :value="noticeCount" :max="99">
@@ -55,15 +64,25 @@
 </template>
 
 <script setup lang="ts">
+import { useRouter } from "vue-router";
 import { formatDate } from "@/utils/format";
 import { DictionaryEnum } from "@/enums/system/dictionary.enum";
 import { useNoticeSync } from "@/composables/sse";
 import MessageAPI, { type MsgInfoViewDto } from "@/api/message";
 import NoticeList from "./NoticeList.vue";
 
-/* ***************************** 实时消息 ********************************* */
+const props = defineProps({
+  /** 小屏模式：只显示图标和消息数，点击跳转消息页 */
+  mobile: {
+    type: Boolean,
+    default: false,
+  },
+});
+
+const router = useRouter();
 const noticeSync = useNoticeSync();
 
+/* ***************************** 实时消息 ********************************* */
 /**
  * 推入消息到对应列表，重复则忽略，新消息弹出通知
  */
@@ -116,7 +135,7 @@ function formatTabHeader(name: string, count: number) {
   return count === 0 ? name : `${name} (${count})`;
 }
 
-/* ***************************** 消息详情 ********************************* */
+/* ***************************** 消息详情（桌面模式） ********************************* */
 const detailVisible = ref(false);
 const detailInfo = ref<MsgInfoViewDto | null>(null);
 
@@ -131,12 +150,10 @@ function handleReadNotice(messageId: string) {
 }
 
 /* ***************************** 监听器等 ********************************* */
-// SSE 消息订阅
 let unsubscribes: (() => void)[] = [];
 
 onMounted(() => {
   featchMyNotice();
-  // 初始化 SSE 事件监听，并订阅三类业务消息
   noticeSync.initialize();
   unsubscribes = [
     noticeSync.onNotify((data) => pushIfAbsent(notifyList.value, data)),
@@ -175,9 +192,27 @@ onBeforeUnmount(() => {
     width: 100%;
     height: 100%;
   }
+
   :deep(.el-dialog) {
     line-height: initial;
     cursor: default;
+  }
+
+  &--mobile {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+
+    :deep(.el-badge) {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .el-icon {
+      font-size: 20px;
+    }
   }
 
   .notice-detail {

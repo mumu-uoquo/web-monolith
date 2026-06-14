@@ -33,6 +33,13 @@
       </div>
     </template>
 
+    <!-- 小屏：消息入口（仅显示图标和数量，点击跳转消息页） -->
+    <template v-if="!isDesktop">
+      <div class="navbar-actions__item">
+        <NoticeDropdown :mobile="true" />
+      </div>
+    </template>
+
     <!-- 用户菜单 -->
     <div class="navbar-actions__item">
       <el-dropdown trigger="click">
