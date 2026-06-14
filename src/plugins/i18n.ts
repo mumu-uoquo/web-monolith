@@ -11,7 +11,7 @@ import zhLocale from "element-plus/es/locale/lang/zh-cn";
 const siphonI18n = (function () {
   // 1. 自动加载所有语言文件
   const modules: Record<string, any> = import.meta.glob(
-    ["/src/lang/**/*.y(a)?ml", "/src/lang/**/*.js(on)?"],
+    ["/src/lang/**/*.{yaml,yml}", "/src/lang/**/*.{js,json}"],
     { eager: true }
   );
   const messages: Record<string, any> = {};
