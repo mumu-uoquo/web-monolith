@@ -4,4 +4,5 @@ export default {
   "*.{vue,html}": ["eslint --fix", "prettier --write", "stylelint --fix"],
   "*.{scss,css}": ["stylelint --fix", "prettier --write"],
   "*.md": ["prettier --write"],
+  "src/api/**": [],
 };

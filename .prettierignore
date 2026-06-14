@@ -9,5 +9,6 @@ public
 
 src/assets
 src/libs
+src/api
 stats.html
 pnpm-lock.yaml

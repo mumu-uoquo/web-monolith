@@ -1,6 +1,6 @@
 import type { AxiosRequestConfig } from "axios";
 import { http } from "@/utils/http";
-const USER_BASE_URL = "/health/api/platform";
+export const USER_BASE_URL = "/health/api/platform";
 
 /**
  * 模块管理
@@ -106,14 +106,10 @@ const ModuleAPI = {
    * @param data 模块ID
    */
   listModuleNotRelationResource(data: IdParam, config?: AxiosRequestConfig) {
-    return http.request<ResourceInfoDto[]>(
-      "post",
-      `${USER_BASE_URL}/v1/module/resource/relate/undelegated`,
-      {
-        data,
-        ...config,
-      }
-    );
+    return http.request<ResourceInfoDto[]>("post", `${USER_BASE_URL}/v1/module/resource/relate/undelegated`, {
+      data,
+      ...config,
+    });
   },
 
   /**
@@ -121,14 +117,10 @@ const ModuleAPI = {
    * @param data 模块ID
    */
   listModuleRelationResource(data: IdParam, config?: AxiosRequestConfig) {
-    return http.request<ResourceInfoDto[]>(
-      "post",
-      `${USER_BASE_URL}/v1/module/resource/relate/list`,
-      {
-        data,
-        ...config,
-      }
-    );
+    return http.request<ResourceInfoDto[]>("post", `${USER_BASE_URL}/v1/module/resource/relate/list`, {
+      data,
+      ...config,
+    });
   },
 
   /**

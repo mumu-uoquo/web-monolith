@@ -1,6 +1,6 @@
 import type { AxiosRequestConfig } from "axios";
 import { http } from "@/utils/http";
-const USER_BASE_URL = "/health/api/platform";
+export const USER_BASE_URL = "/health/api/platform";
 
 /**
  * 日志记录
@@ -11,14 +11,10 @@ const LogsAPI = {
    * @param data 入参：业务日志查询
    */
   logsByAccessList(data: LogsBusinessSearchParam, config?: AxiosRequestConfig) {
-    return http.request<PageResultLogBusinessAccessDto>(
-      "post",
-      `${USER_BASE_URL}/v1/logs/access/list`,
-      {
-        data,
-        ...config,
-      }
-    );
+    return http.request<PageResultLogBusinessAccessDto>("post", `${USER_BASE_URL}/v1/logs/access/list`, {
+      data,
+      ...config,
+    });
   },
 
   /**
@@ -48,14 +44,10 @@ const LogsAPI = {
    * @param data 入参：业务日志查询
    */
   logsByChangeList(data: LogsBusinessSearchParam, config?: AxiosRequestConfig) {
-    return http.request<PageResultLogBusinessChangeDto>(
-      "post",
-      `${USER_BASE_URL}/v1/logs/change/list`,
-      {
-        data,
-        ...config,
-      }
-    );
+    return http.request<PageResultLogBusinessChangeDto>("post", `${USER_BASE_URL}/v1/logs/change/list`, {
+      data,
+      ...config,
+    });
   },
 
   /**
@@ -74,14 +66,10 @@ const LogsAPI = {
    * @param data 入参：业务事件记录查询
    */
   logsByOperationList(data: BizEventRecordSearchParam, config?: AxiosRequestConfig) {
-    return http.request<PageResultBizEventRecordDto>(
-      "post",
-      `${USER_BASE_URL}/v1/logs/operation/list`,
-      {
-        data,
-        ...config,
-      }
-    );
+    return http.request<PageResultBizEventRecordDto>("post", `${USER_BASE_URL}/v1/logs/operation/list`, {
+      data,
+      ...config,
+    });
   },
 };
 
@@ -107,8 +95,6 @@ export interface BizEventRecordDto {
   changeFields?: string;
   /** 备注 */
   description?: string;
-  /** 事件类名 */
-  eventClass?: string;
   /** 日志 ID */
   id: string;
   /** 操作内容 */

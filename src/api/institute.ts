@@ -1,6 +1,6 @@
 import type { AxiosRequestConfig } from "axios";
 import { http } from "@/utils/http";
-const USER_BASE_URL = "/health/api/platform";
+export const USER_BASE_URL = "/health/api/platform";
 
 /**
  * 机构配置、企业信息相关
@@ -77,14 +77,10 @@ const InstituteAPI = {
    * @param data 企业查询
    */
   listInstituteByPage(data: InstituteListParam, config?: AxiosRequestConfig) {
-    return http.request<PageResultInstituteInfoDto>(
-      "post",
-      `${USER_BASE_URL}/v1/institute/list/page`,
-      {
-        data,
-        ...config,
-      }
-    );
+    return http.request<PageResultInstituteInfoDto>("post", `${USER_BASE_URL}/v1/institute/list/page`, {
+      data,
+      ...config,
+    });
   },
 
   /**

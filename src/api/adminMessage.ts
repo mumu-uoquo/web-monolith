@@ -1,6 +1,6 @@
 import type { AxiosRequestConfig } from "axios";
 import { http } from "@/utils/http";
-const USER_BASE_URL = "/health/api/platform";
+export const USER_BASE_URL = "/health/api/platform";
 
 /**
  * 超管消息管理
@@ -67,14 +67,10 @@ const AdminMessageAPI = {
    * @param data 消息记录列表查询
    */
   listMessageInfoByPage(data: MsgInfoListParam, config?: AxiosRequestConfig) {
-    return http.request<PageResultMsgInfoDto>(
-      "post",
-      `${USER_BASE_URL}/admin/v1/message/list/page`,
-      {
-        data,
-        ...config,
-      }
-    );
+    return http.request<PageResultMsgInfoDto>("post", `${USER_BASE_URL}/admin/v1/message/list/page`, {
+      data,
+      ...config,
+    });
   },
 
   /**
@@ -82,14 +78,10 @@ const AdminMessageAPI = {
    * @param data 消息记录列表查询
    */
   listPushLogByMessageId(data: MsgInfoListParam, config?: AxiosRequestConfig) {
-    return http.request<PageResultMsgPushLogDto>(
-      "post",
-      `${USER_BASE_URL}/admin/v1/message/info/push/logs`,
-      {
-        data,
-        ...config,
-      }
-    );
+    return http.request<PageResultMsgPushLogDto>("post", `${USER_BASE_URL}/admin/v1/message/info/push/logs`, {
+      data,
+      ...config,
+    });
   },
 
   /**
@@ -97,14 +89,10 @@ const AdminMessageAPI = {
    * @param data 消息记录列表查询
    */
   listReceiverByMessageId(data: MsgInfoListParam, config?: AxiosRequestConfig) {
-    return http.request<PageResultMsgReceiverDto>(
-      "post",
-      `${USER_BASE_URL}/admin/v1/message/info/receivers`,
-      {
-        data,
-        ...config,
-      }
-    );
+    return http.request<PageResultMsgReceiverDto>("post", `${USER_BASE_URL}/admin/v1/message/info/receivers`, {
+      data,
+      ...config,
+    });
   },
 
   /**
@@ -123,14 +111,10 @@ const AdminMessageAPI = {
    * @param data 发布目标搜索
    */
   searchReceiverByRange(data: MsgReceiverSearchParam, config?: AxiosRequestConfig) {
-    return http.request<PageResultMsgReceiverSearchDto>(
-      "post",
-      `${USER_BASE_URL}/admin/v1/message/receiver/search`,
-      {
-        data,
-        ...config,
-      }
-    );
+    return http.request<PageResultMsgReceiverSearchDto>("post", `${USER_BASE_URL}/admin/v1/message/receiver/search`, {
+      data,
+      ...config,
+    });
   },
 
   /**

@@ -1,6 +1,6 @@
 import type { AxiosRequestConfig } from "axios";
 import { http } from "@/utils/http";
-const USER_BASE_URL = "/health/api/platform";
+export const USER_BASE_URL = "/health/api/platform";
 
 /**
  * 节假日管理、系统字典、系统设置、系统响应码、接入授权
@@ -99,14 +99,10 @@ const SystemAPI = {
    * @param data 应用与资源的关联ID
    */
   deleteAppRelationResource(data: IdParam, config?: AxiosRequestConfig) {
-    return http.request<string>(
-      "post",
-      `${USER_BASE_URL}/v1/system/appinfo/resource/relate/delete`,
-      {
-        data,
-        ...config,
-      }
-    );
+    return http.request<string>("post", `${USER_BASE_URL}/v1/system/appinfo/resource/relate/delete`, {
+      data,
+      ...config,
+    });
   },
 
   /**
@@ -180,14 +176,10 @@ const SystemAPI = {
    * @param data 系统响应码请求参数
    */
   getReturnCodeByCode(data: SysReturnCodeParam, config?: AxiosRequestConfig) {
-    return http.request<SysReturnCodeDto>(
-      "post",
-      `${USER_BASE_URL}/v1/system/return-code/info/code`,
-      {
-        data,
-        ...config,
-      }
-    );
+    return http.request<SysReturnCodeDto>("post", `${USER_BASE_URL}/v1/system/return-code/info/code`, {
+      data,
+      ...config,
+    });
   },
 
   /**
@@ -195,14 +187,10 @@ const SystemAPI = {
    * @param data ID信息
    */
   getReturnCodeById(data: IdParam, config?: AxiosRequestConfig) {
-    return http.request<SysReturnCodeDto>(
-      "post",
-      `${USER_BASE_URL}/v1/system/return-code/info/id`,
-      {
-        data,
-        ...config,
-      }
-    );
+    return http.request<SysReturnCodeDto>("post", `${USER_BASE_URL}/v1/system/return-code/info/id`, {
+      data,
+      ...config,
+    });
   },
 
   /**
@@ -210,7 +198,7 @@ const SystemAPI = {
    * @param data 配置编码查询参数
    */
   getSystemSetting(data: SettingCodeParam, config?: AxiosRequestConfig) {
-    return http.request<string>("post", `${USER_BASE_URL}/v1/system/settings/code`, {
+    return http.request<SettingDto>("post", `${USER_BASE_URL}/v1/system/settings/code`, {
       data,
       ...config,
     });
@@ -220,13 +208,9 @@ const SystemAPI = {
    * 查询所有系统响应码
    */
   listAllReturnCodes(config?: AxiosRequestConfig) {
-    return http.request<SysReturnCodeDto[]>(
-      "post",
-      `${USER_BASE_URL}/v1/system/return-code/list/all`,
-      {
-        ...config,
-      }
-    );
+    return http.request<SysReturnCodeDto[]>("post", `${USER_BASE_URL}/v1/system/return-code/list/all`, {
+      ...config,
+    });
   },
 
   /**
@@ -245,14 +229,10 @@ const SystemAPI = {
    * @param data 接入授权列表查询
    */
   listAppInfoByPage(data: AppInfoListParam, config?: AxiosRequestConfig) {
-    return http.request<PageResultAppInfoDto>(
-      "post",
-      `${USER_BASE_URL}/v1/system/appinfo/list/page`,
-      {
-        data,
-        ...config,
-      }
-    );
+    return http.request<PageResultAppInfoDto>("post", `${USER_BASE_URL}/v1/system/appinfo/list/page`, {
+      data,
+      ...config,
+    });
   },
 
   /**
@@ -269,14 +249,10 @@ const SystemAPI = {
    * @param data 应用ID
    */
   listAppNotRelationResource(data: IdParam, config?: AxiosRequestConfig) {
-    return http.request<ResourceInfoDto[]>(
-      "post",
-      `${USER_BASE_URL}/v1/system/appinfo/resource/relate/undelegated`,
-      {
-        data,
-        ...config,
-      }
-    );
+    return http.request<ResourceInfoDto[]>("post", `${USER_BASE_URL}/v1/system/appinfo/resource/relate/undelegated`, {
+      data,
+      ...config,
+    });
   },
 
   /**
@@ -284,14 +260,10 @@ const SystemAPI = {
    * @param data 应用ID
    */
   listAppRelationResource(data: IdParam, config?: AxiosRequestConfig) {
-    return http.request<ResourceInfoDto[]>(
-      "post",
-      `${USER_BASE_URL}/v1/system/appinfo/resource/relate/list`,
-      {
-        data,
-        ...config,
-      }
-    );
+    return http.request<ResourceInfoDto[]>("post", `${USER_BASE_URL}/v1/system/appinfo/resource/relate/list`, {
+      data,
+      ...config,
+    });
   },
 
   /**
@@ -309,13 +281,9 @@ const SystemAPI = {
    * 获取所有的字典列表
    */
   listDictionaryByAll(config?: AxiosRequestConfig) {
-    return http.request<SysDictionaryDto[]>(
-      "post",
-      `${USER_BASE_URL}/v1/system/dictionary/list/all`,
-      {
-        ...config,
-      }
-    );
+    return http.request<SysDictionaryDto[]>("post", `${USER_BASE_URL}/v1/system/dictionary/list/all`, {
+      ...config,
+    });
   },
 
   /**
@@ -323,27 +291,19 @@ const SystemAPI = {
    * @param data 系统字典请求参数
    */
   listDictionaryByCode(data: SysDictionarySearchParam, config?: AxiosRequestConfig) {
-    return http.request<SysDictionaryDto[]>(
-      "post",
-      `${USER_BASE_URL}/v1/system/dictionary/list/prefix`,
-      {
-        data,
-        ...config,
-      }
-    );
+    return http.request<SysDictionaryDto[]>("post", `${USER_BASE_URL}/v1/system/dictionary/list/prefix`, {
+      data,
+      ...config,
+    });
   },
 
   /**
    * 获取所有的字典列表（简版）
    */
   listDictionarySimpleByAll(config?: AxiosRequestConfig) {
-    return http.request<SysDictionarySimpleDto[]>(
-      "post",
-      `${USER_BASE_URL}/v1/system/dictionary/list/simple/all`,
-      {
-        ...config,
-      }
-    );
+    return http.request<SysDictionarySimpleDto[]>("post", `${USER_BASE_URL}/v1/system/dictionary/list/simple/all`, {
+      ...config,
+    });
   },
 
   /**
@@ -351,14 +311,10 @@ const SystemAPI = {
    * @param data 系统字典请求参数
    */
   listDictionarySimpleByCode(data: SysDictionarySearchParam, config?: AxiosRequestConfig) {
-    return http.request<SysDictionarySimpleDto[]>(
-      "post",
-      `${USER_BASE_URL}/v1/system/dictionary/list/simple/prefix`,
-      {
-        data,
-        ...config,
-      }
-    );
+    return http.request<SysDictionarySimpleDto[]>("post", `${USER_BASE_URL}/v1/system/dictionary/list/simple/prefix`, {
+      data,
+      ...config,
+    });
   },
 
   /**
@@ -377,14 +333,10 @@ const SystemAPI = {
    * @param data 应用ID
    */
   listNotRelateInherit(data: IdParam, config?: AxiosRequestConfig) {
-    return http.request<AppInfoDto[]>(
-      "post",
-      `${USER_BASE_URL}/v1/system/appinfo/inherit/undelegated`,
-      {
-        data,
-        ...config,
-      }
-    );
+    return http.request<AppInfoDto[]>("post", `${USER_BASE_URL}/v1/system/appinfo/inherit/undelegated`, {
+      data,
+      ...config,
+    });
   },
 
   /**
@@ -412,14 +364,10 @@ const SystemAPI = {
    * @param data 系统响应码查询参数
    */
   listReturnCodeByPage(data: SysReturnCodeSearchParam, config?: AxiosRequestConfig) {
-    return http.request<PageResultSysReturnCodeDto>(
-      "post",
-      `${USER_BASE_URL}/v1/system/return-code/list/page`,
-      {
-        data,
-        ...config,
-      }
-    );
+    return http.request<PageResultSysReturnCodeDto>("post", `${USER_BASE_URL}/v1/system/return-code/list/page`, {
+      data,
+      ...config,
+    });
   },
 
   /**

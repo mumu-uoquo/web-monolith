@@ -77,6 +77,7 @@ export default [
       "**/components.d.ts", // 排除自动生成文件
       "**/assets/**", // 排除导入的三方资源
       "src/libs/**", // 排除 libs 目录
+      "src/api/**", // 排除 api 目录
       "types/**/*.d.ts",
     ],
   },

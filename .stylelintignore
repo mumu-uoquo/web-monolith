@@ -10,4 +10,5 @@ build*.zip
 
 src/assets
 src/libs
+src/api
 stats.html

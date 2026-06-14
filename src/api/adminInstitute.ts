@@ -1,6 +1,6 @@
 import type { AxiosRequestConfig } from "axios";
 import { http } from "@/utils/http";
-const USER_BASE_URL = "/health/api/platform";
+export const USER_BASE_URL = "/health/api/platform";
 
 /**
  * 企业管理（超管）
@@ -66,14 +66,10 @@ const AdminInstituteAPI = {
    * @param data 企业查询
    */
   listInstituteByAbbr(data: InstituteListParam, config?: AxiosRequestConfig) {
-    return http.request<InstituteInfoDto[]>(
-      "post",
-      `${USER_BASE_URL}/admin/v1/institute/list/abbr`,
-      {
-        data,
-        ...config,
-      }
-    );
+    return http.request<InstituteInfoDto[]>("post", `${USER_BASE_URL}/admin/v1/institute/list/abbr`, {
+      data,
+      ...config,
+    });
   },
 
   /**
@@ -81,27 +77,19 @@ const AdminInstituteAPI = {
    * @param data 企业查询
    */
   listInstituteByPage(data: InstituteListParam, config?: AxiosRequestConfig) {
-    return http.request<PageResultInstituteInfoDto>(
-      "post",
-      `${USER_BASE_URL}/admin/v1/institute/list/page`,
-      {
-        data,
-        ...config,
-      }
-    );
+    return http.request<PageResultInstituteInfoDto>("post", `${USER_BASE_URL}/admin/v1/institute/list/page`, {
+      data,
+      ...config,
+    });
   },
 
   /**
    * 企业列表（树状）
    */
   listInstituteByTree(config?: AxiosRequestConfig) {
-    return http.request<InstituteTreeDto[]>(
-      "post",
-      `${USER_BASE_URL}/admin/v1/institute/list/tree`,
-      {
-        ...config,
-      }
-    );
+    return http.request<InstituteTreeDto[]>("post", `${USER_BASE_URL}/admin/v1/institute/list/tree`, {
+      ...config,
+    });
   },
 
   /**

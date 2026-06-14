@@ -1,6 +1,6 @@
 import type { AxiosRequestConfig } from "axios";
 import { http } from "@/utils/http";
-const USER_BASE_URL = "/health/api/platform";
+export const USER_BASE_URL = "/health/api/platform";
 
 /**
  * 用户认证相关
@@ -8,9 +8,9 @@ const USER_BASE_URL = "/health/api/platform";
 const AuthAPI = {
   /**
    * 用户账号登录
-   * @param data 用户登录
+   * @param data 账号密码登录
    */
-  accountLogin(data: UserLoginParam, config?: AxiosRequestConfig) {
+  accountLogin(data: AccountLoginParam, config?: AxiosRequestConfig) {
     return http.request<UserAuthDto>("post", `${USER_BASE_URL}/v1/auth/account/login`, {
       data,
       ...config,
@@ -19,9 +19,9 @@ const AuthAPI = {
 
   /**
    * 获取验证码图片
-   * @param data 用户登录
+   * @param data 登录基础参数
    */
-  getCaptcha(data: UserLoginParam, config?: AxiosRequestConfig) {
+  getCaptcha(data: BasicLoginParam, config?: AxiosRequestConfig) {
     return http.request<string>("post", `${USER_BASE_URL}/v1/auth/captcha`, {
       data,
       ...config,
@@ -30,11 +30,9 @@ const AuthAPI = {
 
   /**
    * 当前用户信息
-   * @param data 用户登录
    */
-  getInfo(data: UserLoginParam, config?: AxiosRequestConfig) {
+  getInfo(config?: AxiosRequestConfig) {
     return http.request<UserAuthDto>("post", `${USER_BASE_URL}/v1/auth/info`, {
-      data,
       ...config,
     });
   },
@@ -49,10 +47,10 @@ const AuthAPI = {
   },
 
   /**
-   * 验证TOTP（登录二次验证）
-   * @param data 用户登录
+   * 验证MFA（登录二次验证）
+   * @param data TOTP双因子验证登录
    */
-  mfaLogin(data: UserLoginParam, config?: AxiosRequestConfig) {
+  mfaLogin(data: MfaLoginParam, config?: AxiosRequestConfig) {
     return http.request<UserAuthDto>("post", `${USER_BASE_URL}/v1/auth/mfa/login`, {
       data,
       ...config,
@@ -72,9 +70,9 @@ const AuthAPI = {
 
   /**
    * 刷新token登录
-   * @param data 用户登录
+   * @param data 刷新Token登录
    */
-  tokenLogin(data: UserLoginParam, config?: AxiosRequestConfig) {
+  tokenLogin(data: TokenLoginParam, config?: AxiosRequestConfig) {
     return http.request<TokenDto>("post", `${USER_BASE_URL}/v1/auth/token/login`, {
       data,
       ...config,
@@ -83,6 +81,36 @@ const AuthAPI = {
 };
 
 export default AuthAPI;
+
+/**
+ * 账号密码登录
+ */
+export interface AccountLoginParam {
+  /** 登录账号 */
+  account: string;
+  /** 发起方版本 */
+  appVersion?: string;
+  /** 验证码 */
+  captcha?: string;
+  /** 登录密码 */
+  password: string;
+  /** 是否记住 */
+  rememberMe?: boolean;
+  /** UA（主要用于移动端登录） */
+  userAgent?: string;
+}
+
+/**
+ * 登录基础参数
+ */
+export interface BasicLoginParam {
+  /** 发起方版本 */
+  appVersion?: string;
+  /** 是否记住 */
+  rememberMe?: boolean;
+  /** UA（主要用于移动端登录） */
+  userAgent?: string;
+}
 
 /**
  * ID信息
@@ -129,6 +157,22 @@ export interface ModuleTreeDto {
 }
 
 /**
+ * TOTP双因子验证登录
+ */
+export interface MfaLoginParam {
+  /** 发起方版本 */
+  appVersion?: string;
+  /** 是否记住 */
+  rememberMe?: boolean;
+  /** TOTP验证临时Token */
+  tempToken: string;
+  /** 双因子动态码 */
+  totpCode: string;
+  /** UA（主要用于移动端登录） */
+  userAgent?: string;
+}
+
+/**
  * 出参：Token信息
  */
 export interface TokenDto {
@@ -138,6 +182,22 @@ export interface TokenDto {
   expireTime: number;
   /** 刷新token */
   refreshToken: string;
+}
+
+/**
+ * 刷新Token登录
+ */
+export interface TokenLoginParam {
+  /** 发起方版本 */
+  appVersion?: string;
+  /** 当前角色 */
+  currentRoleId?: string;
+  /** 刷新token */
+  refreshToken: string;
+  /** 是否记住 */
+  rememberMe?: boolean;
+  /** UA（主要用于移动端登录） */
+  userAgent?: string;
 }
 
 /**
@@ -182,34 +242,6 @@ export interface UserAuthDto {
   totpStatus?: string;
   /** 用户姓名（登录账号） */
   userName?: string;
-}
-
-/**
- * 用户登录
- */
-export interface UserLoginParam {
-  /** 登录账号 */
-  account?: string;
-  /** 发起方版本 */
-  appVersion?: string;
-  /** 验证码 */
-  captcha?: string;
-  /** 当前角色 */
-  currentRoleId?: string;
-  /** 设备标识码 */
-  deviceId?: string;
-  /** 登录密码 */
-  password?: string;
-  /** 刷新token */
-  refreshToken?: string;
-  /** 是否记住 */
-  rememberMe?: boolean;
-  /** TOTP验证临时Token */
-  tempToken?: string;
-  /** 双因子动态码 */
-  totpCode?: string;
-  /** UA（主要用于移动端登录） */
-  userAgent?: string;
 }
 
 /**

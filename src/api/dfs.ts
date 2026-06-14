@@ -1,6 +1,6 @@
 import type { AxiosRequestConfig } from "axios";
 import { http } from "@/utils/http";
-const USER_BASE_URL = "/health/api/platform";
+export const USER_BASE_URL = "/health/api/platform";
 
 /**
  * 分布式文件管理
@@ -22,14 +22,10 @@ const DfsAPI = {
    * @param param 下载码
    */
   downloadFileByRange(param: DownloadFileByRangeParam, config?: AxiosRequestConfig) {
-    return http.request<any>(
-      "get",
-      `${USER_BASE_URL}/v1/file/download/transfer?downloadCode=${param.downloadCode}`,
-      {
-        ...config,
-        responseType: "blob",
-      }
-    );
+    return http.request<any>("get", `${USER_BASE_URL}/v1/file/download/transfer?downloadCode=${param.downloadCode}`, {
+      ...config,
+      responseType: "blob",
+    });
   },
 
   /**
@@ -49,14 +45,10 @@ const DfsAPI = {
    * @param param 当前块数据
    */
   uploadByChunk(data: Blob, param: UploadByChunkParam, config?: AxiosRequestConfig) {
-    return http.request<number>(
-      "post",
-      `${USER_BASE_URL}/v1/file/upload/transfer?uploadCode=${param.uploadCode}&chunkIndex=${param.chunkIndex}&chunkSize=${param.chunkSize}`,
-      {
-        data,
-        ...config,
-      }
-    );
+    return http.request<number>("post", `${USER_BASE_URL}/v1/file/upload/transfer?uploadCode=${param.uploadCode}&chunkIndex=${param.chunkIndex}&chunkSize=${param.chunkSize}`, {
+      data,
+      ...config,
+    });
   },
 };
 
