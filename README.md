@@ -83,11 +83,16 @@ server {
     }
 
     # 反向代理后端接口
-    location /prod-api/ {
-        proxy_pass http://your-backend-api/;
+    # 前端请求 /health/... 转发到后端，与 .env.production 中 VITE_APP_BASE_API='' 配合
+    location /health/ {
+        proxy_pass https://api.uoquo.com/health/;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
     }
 }
 ```
+
+> 生产环境没有 Node 开发服务器的 proxy，接口转发由 Nginx 承担。`VITE_APP_BASE_API` 在生产环境设为空字符串，接口请求走同源路径，Nginx 按路径前缀转发到后端地址。
 
 ---
 

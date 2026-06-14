@@ -81,8 +81,12 @@ class AxiosWithTokenRefresh {
 
   constructor(config: AxiosRequestConfig = {}) {
     // 基础配置
+    // 优先级：外部传入 > 生产环境直连（VITE_APP_API_URL）> 同域转发（VITE_APP_BASE_API，由 Nginx 代理）
+    const apiUrl = import.meta.env.VITE_APP_API_URL;
+    const baseApi = import.meta.env.VITE_APP_BASE_API;
+    const baseURL = config.baseURL || (import.meta.env.PROD && apiUrl ? apiUrl : baseApi);
     this.baseConfig = {
-      baseURL: config.baseURL || import.meta.env.VITE_APP_BASE_API,
+      baseURL,
       timeout: config.timeout || 10000,
       headers: {
         "Content-Type": "application/json",
