@@ -1,6 +1,6 @@
 import { store, useDictStoreHook, usePermissionStoreHook, useTagsViewStore } from "@/stores";
 import { AuthStorage } from "@/utils/auth";
-import AuthAPI, { type UserLoginParam, type UserAuthDto, type TokenDto } from "@/api/auth";
+import AuthAPI, { type UserAuthDto, type TokenDto, type TokenLoginParam } from "@/api/auth";
 import type { RouteRecordRaw } from "vue-router";
 import router from "@/router";
 
@@ -134,7 +134,7 @@ export const useUserStore = defineStore("user", () => {
       throw new Error("没有有效的刷新令牌");
     }
     // 刷新令牌
-    const param: UserLoginParam = {
+    const param: TokenLoginParam = {
       currentRoleId: userInfo.value.currentRoleId,
       refreshToken: token,
     };

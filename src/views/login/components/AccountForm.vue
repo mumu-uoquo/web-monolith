@@ -87,9 +87,10 @@
 <script setup lang="ts">
 import { User, Lock, Loading } from "@element-plus/icons-vue";
 import { useUserStore, useSettingsStore } from "@/stores";
+import { appConfig } from "@/settings";
 import { encrypt } from "@/utils/crypto";
 import { AuthStorage } from "@/utils/auth";
-import AuthAPI, { type UserLoginParam } from "@/api/auth";
+import AuthAPI, { type AccountLoginParam } from "@/api/auth";
 
 /* ***************************** 参数定义 ********************************* */
 // 暴露给父级的自定义事件
@@ -113,7 +114,7 @@ function showForm(type: "register" | "resetPwd" | "mfa", payload?: string) {
 /* ***************************** 表单信息 ********************************* */
 // 初始表单数据
 const rememberMe = AuthStorage.getRememberMe();
-const loginData = ref<UserLoginParam>({
+const loginData = ref<AccountLoginParam>({
   account: "",
   password: "",
   captcha: "",
@@ -157,11 +158,13 @@ const handleLoginSubmit = useDebounceFn(async () => {
     account: loginData.value.account,
     password: loginData.value.password,
     captcha: loginData.value.captcha,
-  };
+    rememberMe: loginData.value.rememberMe,
+    appVersion: appConfig.version,
+  } as AccountLoginParam;
   try {
     reqData.password = encrypt.password(reqData.password || "", settingsStore.rsaPublicKey);
     const userDto = await AuthAPI.accountLogin(reqData);
-    AuthStorage.setRememberMe(loginData.value.rememberMe);
+    AuthStorage.setRememberMe(reqData.rememberMe);
     if (userDto.totpStatus === "enabled") {
       // 开启双因子认证，切换到 MFA 表单
       showForm("mfa", userDto.accessToken || "");
@@ -183,7 +186,7 @@ const handleLoginSubmit = useDebounceFn(async () => {
 const captchLoading = ref(false);
 function getCaptcha() {
   captchLoading.value = true;
-  AuthAPI.getCaptcha(loginData.value)
+  AuthAPI.getCaptcha({ rememberMe: loginData.value.rememberMe })
     .then((data) => {
       loginData.value.captcha = "";
       captchaBase64.value = data;

@@ -27,8 +27,9 @@
 </template>
 
 <script setup lang="ts">
-import AuthAPI from "@/api/auth";
 import { useUserStore } from "@/stores";
+import { appConfig } from "@/settings";
+import AuthAPI, { type MfaLoginParam } from "@/api/auth";
 
 /* ***************************** 参数定义 ********************************* */
 const props = defineProps<{
@@ -73,7 +74,12 @@ async function handleSubmit() {
   }
   loading.value = true;
   try {
-    const data = await AuthAPI.mfaLogin({ tempToken: props.tempToken, totpCode: totpCode.value });
+    const reqData = {
+      tempToken: props.tempToken,
+      totpCode: totpCode.value,
+      appVersion: appConfig.version,
+    } as MfaLoginParam;
+    const data = await AuthAPI.mfaLogin(reqData);
     userStore.setUserInfo(data);
     emits("mfa-success");
   } catch (error: any) {
