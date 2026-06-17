@@ -299,8 +299,8 @@ const infoFormRules = reactive<FormRules<InfoFormParam>>({
     {
       min: 2,
       max: 20,
-      pattern: /^[a-zA-Z]+[a-zA-Z0-9]+$/,
-      message: "只能输入 2 到 20 位的字母和数字",
+      pattern: /^[a-zA-Z][a-zA-Z0-9_-]*$/,
+      message: "2~20位，字母开头，只能包含字母、数字、下划线、中横线",
       trigger: "blur",
     },
   ],
