@@ -40,47 +40,95 @@
         </div>
 
         <transition name="fade-slide" mode="out-in">
+          <!-- 账号密码登录 -->
           <div v-if="component === 'login'" key="login" class="login-card__form">
-            <h3 class="login-form__title text-center">{{ t("login.login") }}</h3>
-
-            <AccountForm @on-submit="handleLoginSuccess" @on-show-form="showForm" />
-            <!-- 用 component 实现多种登录模式的切换 -->
-
-            <div flex-center gap-10px>
-              <el-text size="default">{{ t("login.noAccount") }}</el-text>
-              <el-link type="primary" underline="never" @click="showForm('register')">
-                {{ t("login.reg") }}
-              </el-link>
-            </div>
-
-            <!-- 第三方登录 -->
-            <div class="login-form__social">
-              <div class="social-divider">
-                <span class="social-divider__line" />
-                <span class="social-divider__text">{{ t("login.otherLoginMethods") }}</span>
-                <span class="social-divider__line" />
-              </div>
-              <div class="social-icons">
-                <span class="social-icons__item"><span class="i-svg:site-wechat" /></span>
-                <span class="social-icons__item"><span class="i-svg:site-qq" /></span>
-                <span class="social-icons__item"><span class="i-svg:site-github" /></span>
-                <span class="social-icons__item"><span class="i-svg:site-gitee" /></span>
-              </div>
-            </div>
+            <AccountForm
+              @on-submit="handleLoginSuccess"
+              @need-mfa="handleNeedMfa"
+              @on-show-form="showForm"
+            />
           </div>
 
+          <!-- MFA 双因子认证 -->
           <div v-else-if="component === 'mfa'" key="mfa" class="login-card__form">
             <MfaForm :temp-token="mfaTempToken" @mfa-success="handleLoginSuccess" />
           </div>
 
-          <component
-            :is="(formComponents as any)[component]"
-            v-else
-            :key="component"
-            class="login-card__form"
-            @update:model-value="component = $event"
-          />
+          <!-- 微信扫码 -->
+          <div v-else-if="component === 'wechat'" key="wechat" class="login-card__form">
+            <WechatQrCode
+              @update:model-value="component = $event"
+              @on-submit="handleLoginSuccess"
+              @need-bind="handleNeedBind"
+            />
+          </div>
+
+          <!-- 手机号登录 -->
+          <div v-else-if="component === 'phone'" key="phone" class="login-card__form">
+            <PhoneForm
+              @update:model-value="component = $event"
+              @on-submit="handleLoginSuccess"
+              @need-mfa="handleNeedMfa"
+            />
+          </div>
+
+          <!-- 微信绑定账号 -->
+          <div v-else-if="component === 'wechatBind'" key="wechatBind" class="login-card__form">
+            <WechatBindForm
+              :open-id="bindCredential"
+              @update:model-value="component = $event"
+              @on-submit="handleLoginSuccess"
+              @need-mfa="handleNeedMfa"
+            />
+          </div>
+
+          <!-- 注册 -->
+          <div v-else-if="component === 'register'" key="register" class="login-card__form">
+            <Register @update:model-value="component = $event" />
+          </div>
+          <!-- 重置密码 -->
+          <div v-else-if="component === 'resetPwd'" key="resetPwd" class="login-card__form">
+            <ResetPwd @update:model-value="component = $event" />
+          </div>
         </transition>
+
+        <!-- 第三方登录（仅在 login / phone / wechat 模式下显示） -->
+        <div v-if="['login', 'phone', 'wechat'].includes(component)" class="login-form__social">
+          <div class="social-divider">
+            <span class="social-divider__line" />
+            <span class="social-divider__text">{{ t("login.otherLoginMethods") }}</span>
+            <span class="social-divider__line" />
+          </div>
+          <div class="social-icons">
+            <el-tooltip :content="t('login.wechatLogin')" placement="top">
+              <span
+                class="social-icons__item"
+                :class="{ active: component === 'wechat' }"
+                @click="component = component === 'wechat' ? 'login' : 'wechat'"
+              >
+                <span class="i-svg:site-wechat" />
+              </span>
+            </el-tooltip>
+            <el-tooltip :content="t('login.phoneLogin')" placement="top">
+              <span
+                class="social-icons__item"
+                :class="{ active: component === 'phone' }"
+                @click="component = component === 'phone' ? 'login' : 'phone'"
+              >
+                <el-icon><Iphone /></el-icon>
+              </span>
+            </el-tooltip>
+            <el-tooltip content="QQ" placement="top">
+              <span class="social-icons__item"><span class="i-svg:site-qq" /></span>
+            </el-tooltip>
+            <el-tooltip content="GitHub" placement="top">
+              <span class="social-icons__item"><span class="i-svg:site-github" /></span>
+            </el-tooltip>
+            <el-tooltip content="Gitee" placement="top">
+              <span class="social-icons__item"><span class="i-svg:site-gitee" /></span>
+            </el-tooltip>
+          </div>
+        </div>
 
         <footer class="login-card__footer">
           <el-text size="small">
@@ -94,7 +142,6 @@
 </template>
 
 <script setup lang="ts">
-import type { FormInstance } from "element-plus";
 import router from "@/router";
 import { useSettingsStore, useUserStore, useDictStore } from "@/stores";
 import { AuthStorage } from "@/utils/auth";
@@ -105,8 +152,13 @@ import { appConfig } from "@/settings";
 import ThemeSwitch from "@/components/ThemeSwitch/index.vue";
 import LangSelect from "@/components/LangSelect/index.vue";
 import Hero from "./components/Hero.vue";
+import Register from "./components/Register.vue";
+import ResetPwd from "./components/ResetPwd.vue";
 import AccountForm from "./components/AccountForm.vue";
 import MfaForm from "./components/MfaForm.vue";
+import PhoneForm from "./components/PhoneForm.vue";
+import WechatQrCode from "./components/WechatQrCode.vue";
+import WechatBindForm from "./components/WechatBindForm.vue";
 
 /* ***************************** 参数定义 ********************************* */
 const { t } = useI18n();
@@ -136,42 +188,58 @@ async function handleLoginSuccess() {
 }
 
 /**
- * 解析 redirect 字符串 为 path 和  queryParams
- *
- * @returns { path: string, queryParams: Record<string, string> } 解析后的 path 和 queryParams
+ * 解析 redirect 字符串为 path 和 queryParams
  */
-function parseRedirect(): {
-  path: string;
-  queryParams: Record<string, string>;
-} {
+function parseRedirect(): { path: string; queryParams: Record<string, string> } {
   const query: Record<string, any> = route.query;
   const redirect = (query.redirect as string) ?? "/";
-
   const url = new URL(redirect, window.location.origin);
   const path = url.pathname;
   const queryParams: Record<string, string> = {};
-
   url.searchParams.forEach((value, key) => {
     queryParams[key] = value;
   });
-
   return { path, queryParams };
 }
-/* ***************************** 操作函数 ********************************* */
-type LayoutMap = "login" | "register" | "resetPwd" | "mfa";
-const component = ref<LayoutMap>("login");
-const mfaTempToken = ref<string>(""); // MFA 临时 token
-const formComponents = {
-  register: defineAsyncComponent(() => import("./components/Register.vue")),
-  resetPwd: defineAsyncComponent(() => import("./components/ResetPwd.vue")),
-  mfa: defineAsyncComponent(() => import("./components/MfaForm.vue")),
-};
 
-function showForm(type: "register" | "resetPwd" | "mfa", payload?: string) {
+/* ***************************** 视图切换 ********************************* */
+type LayoutMap = "login" | "register" | "resetPwd" | "mfa" | "phone" | "wechat" | "wechatBind";
+const component = ref<LayoutMap>("login");
+const mfaTempToken = ref<string>(""); // MFA 临时 token（通用）
+const bindCredential = ref<string>(""); // 第三方绑定凭证（如微信 openId，通用）
+
+function showForm(type: LayoutMap, payload?: string) {
   if (type === "mfa" && payload) {
     mfaTempToken.value = payload;
   }
   component.value = type;
+}
+
+/**
+ * 需要 MFA 二次认证（通用）
+ *
+ * 任意登录方式（账号密码 / 手机号 / 第三方凭证等）在需要二次认证时均可触发：
+ * 当登录接口返回 userId 为空或 totpStatus 为 enabled 时，
+ * 将返回的 accessToken 作为临时 token 传入，切换到 MFA 表单。
+ *
+ * @param tempToken 登录接口返回的临时 token（accessToken）
+ */
+function handleNeedMfa(tempToken: string) {
+  mfaTempToken.value = tempToken;
+  component.value = "mfa";
+}
+
+/**
+ * 需要绑定账号（通用）
+ *
+ * 第三方凭证登录（微信 / 企微等）在系统中未找到关联账号时触发，
+ * 携带凭证标识（如微信 openId）切换到绑定表单。
+ *
+ * @param credential 第三方凭证标识（如微信 openId）
+ */
+function handleNeedBind(credential: string) {
+  bindCredential.value = credential;
+  component.value = "wechatBind";
 }
 
 /* ***************************** 监听器等（需放在最后） ********************************* */
@@ -428,11 +496,18 @@ onMounted(() => {
       height: 36px;
       font-size: 18px;
       cursor: pointer;
+      border: 1px solid transparent;
       border-radius: 10px;
       transition: all 0.2s;
 
       &:hover {
         background: var(--el-fill-color);
+      }
+
+      &.active {
+        color: var(--el-color-primary);
+        background: var(--el-color-primary-light-9);
+        border-color: var(--el-color-primary-light-5);
       }
     }
   }

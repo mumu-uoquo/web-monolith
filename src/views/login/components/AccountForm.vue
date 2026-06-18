@@ -1,4 +1,5 @@
 <template>
+  <h3 class="login-form__title text-center">{{ t("login.login") }}</h3>
   <el-form
     ref="loginFormRef"
     :model="loginData"
@@ -82,6 +83,13 @@
       </el-button>
     </el-form-item>
   </el-form>
+
+  <div flex-center gap-10px>
+    <el-text size="default">{{ t("login.noAccount") }}</el-text>
+    <el-link type="primary" underline="never" @click="showForm('register')">
+      {{ t("login.reg") }}
+    </el-link>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -94,7 +102,7 @@ import AuthAPI, { type AccountLoginParam } from "@/api/auth";
 
 /* ***************************** 参数定义 ********************************* */
 // 暴露给父级的自定义事件
-const emits = defineEmits(["on-submit", "on-show-form"]);
+const emits = defineEmits(["on-submit", "on-show-form", "need-mfa"]);
 
 const userStore = useUserStore();
 const settingsStore = useSettingsStore();
@@ -105,9 +113,9 @@ const captchaBase64 = ref(); // 验证码图片Base64字符串
 const { t } = useI18n();
 
 /**
- * 切换到其他表单（注册 / 忘记密码 / MFA）
+ * 切换到其他表单（注册 / 忘记密码）
  */
-function showForm(type: "register" | "resetPwd" | "mfa", payload?: string) {
+function showForm(type: "register" | "resetPwd", payload?: string) {
   emits("on-show-form", type, payload);
 }
 
@@ -166,8 +174,8 @@ const handleLoginSubmit = useDebounceFn(async () => {
     const userDto = await AuthAPI.accountLogin(reqData);
     AuthStorage.setRememberMe(reqData.rememberMe);
     if (userDto.totpStatus === "enabled") {
-      // 开启双因子认证，切换到 MFA 表单
-      showForm("mfa", userDto.accessToken || "");
+      // 开启双因子认证，触发通用 MFA 流程
+      emits("need-mfa", userDto.accessToken || "");
     } else {
       // 保存用户信息，跳转首页
       userStore.setUserInfo(userDto);
@@ -186,7 +194,7 @@ const handleLoginSubmit = useDebounceFn(async () => {
 const captchLoading = ref(false);
 function getCaptcha() {
   captchLoading.value = true;
-  AuthAPI.getCaptcha({ rememberMe: loginData.value.rememberMe })
+  AuthAPI.getCaptcha({ scene: "login" })
     .then((data) => {
       loginData.value.captcha = "";
       captchaBase64.value = data;

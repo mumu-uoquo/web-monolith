@@ -18,10 +18,32 @@ const AuthAPI = {
   },
 
   /**
-   * 获取验证码图片
-   * @param data 登录基础参数
+   * 凭证绑定
+   * @param data 凭证绑定（账号密码 + tempToken）
    */
-  getCaptcha(data: BasicLoginParam, config?: AxiosRequestConfig) {
+  credentialBind(data: CredentialBindParam, config?: AxiosRequestConfig) {
+    return http.request<UserAuthDto>("post", `${USER_BASE_URL}/v1/auth/credential/bind`, {
+      data,
+      ...config,
+    });
+  },
+
+  /**
+   * 第三方凭证登录
+   * @param data 第三方凭证登录
+   */
+  credentialLogin(data: CredentialLoginParam, config?: AxiosRequestConfig) {
+    return http.request<UserAuthDto>("post", `${USER_BASE_URL}/v1/auth/credential/login`, {
+      data,
+      ...config,
+    });
+  },
+
+  /**
+   * scene 需与后续流程一致：login=密码出错触发, register=用户注册, sms_login=短信登录发码前人机验证（非 login 场景的验证码 key 会按 scene 隔离）
+   * @param data 获取图形验证码
+   */
+  getCaptcha(data: CaptchaParam, config?: AxiosRequestConfig) {
     return http.request<string>("post", `${USER_BASE_URL}/v1/auth/captcha`, {
       data,
       ...config,
@@ -69,6 +91,50 @@ const AuthAPI = {
   },
 
   /**
+   * 用户注册
+   * @param data 用户注册
+   */
+  register(data: RegisterParam, config?: AxiosRequestConfig) {
+    return http.request<string>("post", `${USER_BASE_URL}/v1/auth/register`, {
+      data,
+      ...config,
+    });
+  },
+
+  /**
+   * 密码找回
+   * @param data 密码找回
+   */
+  resetPassword(data: ResetPasswordParam, config?: AxiosRequestConfig) {
+    return http.request<string>("post", `${USER_BASE_URL}/v1/auth/password/reset`, {
+      data,
+      ...config,
+    });
+  },
+
+  /**
+   * 必须携带图像验证码进行人机交互验证
+   * @param data 获取手机短信验证码
+   */
+  sendPhoneCaptcha_1(data: PhoneCaptchaParam, config?: AxiosRequestConfig) {
+    return http.request<string>("post", `${USER_BASE_URL}/v1/auth/phone/captcha`, {
+      data,
+      ...config,
+    });
+  },
+
+  /**
+   * 手机号短信码登录
+   * @param data 手机号短信码登录
+   */
+  smsLogin(data: SmsLoginParam, config?: AxiosRequestConfig) {
+    return http.request<UserAuthDto>("post", `${USER_BASE_URL}/v1/auth/phone/login`, {
+      data,
+      ...config,
+    });
+  },
+
+  /**
    * 刷新token登录
    * @param data 刷新Token登录
    */
@@ -101,11 +167,43 @@ export interface AccountLoginParam {
 }
 
 /**
- * 登录基础参数
+ * 获取图形验证码
  */
-export interface BasicLoginParam {
+export interface CaptchaParam {
+  /** 使用场景：login / register / phone */
+  scene?: string;
+}
+
+/**
+ * 凭证绑定（账号密码 + tempToken）
+ */
+export interface CredentialBindParam {
+  /** 登录账号（手机号或用户名） */
+  account: string;
   /** 发起方版本 */
   appVersion?: string;
+  /** 验证码（非必填） */
+  captcha?: string;
+  /** 登录密码（RSA 加密） */
+  password: string;
+  /** 是否记住 */
+  rememberMe?: boolean;
+  /** 凭证登录返回的临时Token */
+  tempToken: string;
+  /** UA（主要用于移动端登录） */
+  userAgent?: string;
+}
+
+/**
+ * 第三方凭证登录
+ */
+export interface CredentialLoginParam {
+  /** 发起方版本 */
+  appVersion?: string;
+  /** 凭证类型（wechat/wecom） */
+  credentialType: string;
+  /** 凭证标识值（如微信 openid） */
+  credentialValue: string;
   /** 是否记住 */
   rememberMe?: boolean;
   /** UA（主要用于移动端登录） */
@@ -168,6 +266,64 @@ export interface MfaLoginParam {
   tempToken: string;
   /** 双因子动态码 */
   totpCode: string;
+  /** UA（主要用于移动端登录） */
+  userAgent?: string;
+}
+
+/**
+ * 获取手机短信验证码
+ */
+export interface PhoneCaptchaParam {
+  /** 图形验证码（若当前场景需要则必填） */
+  captcha?: string;
+  /** 手机号 */
+  phone: string;
+  /** 使用场景：sms_login / register（需与获取图形验证码时的 scene 一致） */
+  scene: string;
+}
+
+/**
+ * 用户注册
+ */
+export interface RegisterParam {
+  /** 用户所属机构id */
+  instituteId: string;
+  /** 用户密码（RSA 加密） */
+  password: string;
+  /** 手机号 */
+  phone: string;
+  /** 真实姓名 */
+  realName?: string;
+  /** 短信验证码 */
+  smsCode: string;
+  /** 用户账号 */
+  userName: string;
+}
+
+/**
+ * 密码找回
+ */
+export interface ResetPasswordParam {
+  /** 新密码（RSA 加密） */
+  newPassword: string;
+  /** 手机号 */
+  phone: string;
+  /** 短信验证码 */
+  smsCode: string;
+}
+
+/**
+ * 手机号短信码登录
+ */
+export interface SmsLoginParam {
+  /** 发起方版本 */
+  appVersion?: string;
+  /** 手机号 */
+  phone: string;
+  /** 是否记住 */
+  rememberMe?: boolean;
+  /** 短信验证码 */
+  smsCode: string;
   /** UA（主要用于移动端登录） */
   userAgent?: string;
 }
