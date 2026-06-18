@@ -99,8 +99,9 @@
 
 <script setup lang="ts">
 import { Iphone, ChatDotRound, Loading } from "@element-plus/icons-vue";
-import { useUserStore } from "@/stores";
+import { useUserStore, useSettingsStore } from "@/stores";
 import { AuthStorage } from "@/utils/auth";
+import { encrypt } from "@/utils/crypto";
 import { appConfig } from "@/settings";
 import AuthAPI, { type SmsLoginParam, type PhoneCaptchaParam } from "@/api/auth";
 
@@ -116,6 +117,7 @@ const emits = defineEmits<{
 
 const { t } = useI18n();
 const userStore = useUserStore();
+const settingsStore = useSettingsStore();
 
 // 短信验证码场景标识，需与获取图形验证码时保持一致
 const SMS_SCENE = "sms_login";
@@ -191,11 +193,12 @@ async function sendSmsCode() {
   sendingCode.value = true;
   try {
     const reqData: PhoneCaptchaParam = {
-      phone: formData.value.phone,
+      // 手机号 RSA 加密后传输
+      phone: encrypt.rsa(formData.value.phone, settingsStore.rsaPublicKey),
       captcha: formData.value.captcha,
       scene: SMS_SCENE,
     };
-    const messge = await AuthAPI.sendPhoneCaptcha_1(reqData);
+    const messge = await AuthAPI.sendSmsCaptcha(reqData);
     ElMessage.success(messge ?? t("login.codeSent"));
     startCountdown();
   } catch {
@@ -216,7 +219,8 @@ const handleSubmit = useDebounceFn(async () => {
   loading.value = true;
   try {
     const reqData: SmsLoginParam = {
-      phone: formData.value.phone,
+      // 手机号 RSA 加密后传输
+      phone: encrypt.rsa(formData.value.phone, settingsStore.rsaPublicKey),
       smsCode: formData.value.smsCode,
       rememberMe: formData.value.rememberMe,
       appVersion: appConfig.version,
@@ -224,7 +228,7 @@ const handleSubmit = useDebounceFn(async () => {
     const data = await AuthAPI.smsLogin(reqData);
     AuthStorage.setRememberMe(formData.value.rememberMe);
 
-    // userId（id）为空表示需要 MFA 二次认证，accessToken 即为 MFA 的临时 token
+    // 开启双因子认证时需要 MFA 二次认证，accessToken 即为 MFA 的临时 token
     if (data.totpStatus === "enabled") {
       emits("need-mfa", data.accessToken || "");
     } else {

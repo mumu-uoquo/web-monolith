@@ -116,7 +116,7 @@ const AuthAPI = {
    * 必须携带图像验证码进行人机交互验证
    * @param data 获取手机短信验证码
    */
-  sendPhoneCaptcha_1(data: PhoneCaptchaParam, config?: AxiosRequestConfig) {
+  sendSmsCaptcha(data: PhoneCaptchaParam, config?: AxiosRequestConfig) {
     return http.request<string>("post", `${USER_BASE_URL}/v1/auth/phone/captcha`, {
       data,
       ...config,
@@ -276,7 +276,7 @@ export interface MfaLoginParam {
 export interface PhoneCaptchaParam {
   /** 图形验证码（若当前场景需要则必填） */
   captcha?: string;
-  /** 手机号 */
+  /** 手机号（RSA 加密） */
   phone: string;
   /** 使用场景：sms_login / register（需与获取图形验证码时的 scene 一致） */
   scene: string;
@@ -290,7 +290,7 @@ export interface RegisterParam {
   instituteId: string;
   /** 用户密码（RSA 加密） */
   password: string;
-  /** 手机号 */
+  /** 手机号（RSA 加密） */
   phone: string;
   /** 真实姓名 */
   realName?: string;
@@ -306,7 +306,7 @@ export interface RegisterParam {
 export interface ResetPasswordParam {
   /** 新密码（RSA 加密） */
   newPassword: string;
-  /** 手机号 */
+  /** 手机号（RSA 加密） */
   phone: string;
   /** 短信验证码 */
   smsCode: string;
@@ -318,7 +318,7 @@ export interface ResetPasswordParam {
 export interface SmsLoginParam {
   /** 发起方版本 */
   appVersion?: string;
-  /** 手机号 */
+  /** 手机号（RSA 加密） */
   phone: string;
   /** 是否记住 */
   rememberMe?: boolean;
