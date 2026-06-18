@@ -73,7 +73,7 @@
           </div>
 
           <!-- 微信绑定账号 -->
-          <div v-else-if="component === 'wechatBind'" key="wechatBind" class="login-card__form">
+          <div v-else-if="component === 'bind'" key="bind" class="login-card__form">
             <WechatBindForm
               :open-id="bindCredential"
               @update:model-value="component = $event"
@@ -93,7 +93,10 @@
         </transition>
 
         <!-- 第三方登录（仅在 login / phone / wechat 模式下显示） -->
-        <div v-if="['login', 'phone', 'wechat'].includes(component)" class="login-form__social">
+        <div
+          v-if="['login', 'phone', 'mfa', 'wechat', 'bind'].includes(component)"
+          class="login-form__social"
+        >
           <div class="social-divider">
             <span class="social-divider__line" />
             <span class="social-divider__text">{{ t("login.otherLoginMethods") }}</span>
@@ -203,7 +206,7 @@ function parseRedirect(): { path: string; queryParams: Record<string, string> } 
 }
 
 /* ***************************** 视图切换 ********************************* */
-type LayoutMap = "login" | "register" | "resetPwd" | "mfa" | "phone" | "wechat" | "wechatBind";
+type LayoutMap = "login" | "register" | "resetPwd" | "mfa" | "phone" | "wechat" | "bind";
 const component = ref<LayoutMap>("login");
 const mfaTempToken = ref<string>(""); // MFA 临时 token（通用）
 const bindCredential = ref<string>(""); // 第三方绑定凭证（如微信 openId，通用）
@@ -239,7 +242,7 @@ function handleNeedMfa(tempToken: string) {
  */
 function handleNeedBind(credential: string) {
   bindCredential.value = credential;
-  component.value = "wechatBind";
+  component.value = "bind";
 }
 
 /* ***************************** 监听器等（需放在最后） ********************************* */
@@ -423,7 +426,7 @@ onMounted(() => {
 }
 
 .login-card__form {
-  min-height: 420px;
+  min-height: 364px;
 
   :deep(.el-form-item) {
     margin-bottom: 18px;
@@ -466,7 +469,7 @@ onMounted(() => {
   .social-divider {
     display: flex;
     align-items: center;
-    margin: 16px 0;
+    margin: 0 0 16px 0;
 
     &__line {
       flex: 1;
