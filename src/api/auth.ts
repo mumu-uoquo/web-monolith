@@ -29,11 +29,33 @@ const AuthAPI = {
   },
 
   /**
+   * 第三方扫码登录配置
+   * @param data 第三方扫码登录配置
+   */
+  credentialConfig(data: CredentialConfigParam, config?: AxiosRequestConfig) {
+    return http.request<CredentialConfigDto>("post", `${USER_BASE_URL}/v1/auth/credential/config`, {
+      data,
+      ...config,
+    });
+  },
+
+  /**
    * 第三方凭证登录
    * @param data 第三方凭证登录
    */
   credentialLogin(data: CredentialLoginParam, config?: AxiosRequestConfig) {
     return http.request<UserAuthDto>("post", `${USER_BASE_URL}/v1/auth/credential/login`, {
+      data,
+      ...config,
+    });
+  },
+
+  /**
+   * 第三方扫码登录状态轮询
+   * @param data 第三方扫码登录状态
+   */
+  credentialStatus(data: CredentialStatusParam, config?: AxiosRequestConfig) {
+    return http.request<CredentialStatusDto>("post", `${USER_BASE_URL}/v1/auth/credential/status`, {
       data,
       ...config,
     });
@@ -195,6 +217,30 @@ export interface CredentialBindParam {
 }
 
 /**
+ * 第三方扫码登录配置
+ */
+export interface CredentialConfigDto {
+  /** 企业微信应用 agentId（仅 wecom 返回） */
+  agentId?: string;
+  /** 应用 appid（微信 appid 或企业微信 corpid） */
+  appid?: string;
+  /** 授权回调地址 */
+  redirectUri?: string;
+  /** 场景（wechat/wecom） */
+  scene?: string;
+  /** 本次授权的 state（用于回调与状态轮询） */
+  state?: string;
+}
+
+/**
+ * 第三方扫码登录配置
+ */
+export interface CredentialConfigParam {
+  /** 场景（wechat/wecom） */
+  scene: string;
+}
+
+/**
  * 第三方凭证登录
  */
 export interface CredentialLoginParam {
@@ -208,6 +254,26 @@ export interface CredentialLoginParam {
   rememberMe?: boolean;
   /** UA（主要用于移动端登录） */
   userAgent?: string;
+}
+
+/**
+ * 第三方扫码登录状态
+ */
+export interface CredentialStatusDto {
+  /** 第三方回调的 code（confirmed 时有值） */
+  code?: string;
+  /** 状态：waiting=等待授权，confirmed=已回调拿到 code */
+  status?: string;
+}
+
+/**
+ * 第三方扫码登录状态
+ */
+export interface CredentialStatusParam {
+  /** 场景（wechat/wecom） */
+  scene: string;
+  /** 本次授权的 state（用于回调与状态轮询） */
+  state: string;
 }
 
 /**

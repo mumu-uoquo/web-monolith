@@ -150,7 +150,7 @@ export const useSettingsStore = defineStore("setting", () => {
 
     try {
       const localTimeBefore = Date.now();
-      const settings = await SystemAPI.listPublicSettings();
+      const settings = await SystemAPI.listPublicSettings({ prefix: "" });
       const localTimeAfter = Date.now();
 
       const get = (code: string) => {

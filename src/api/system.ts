@@ -341,9 +341,11 @@ const SystemAPI = {
 
   /**
    * 获取通用配置信息（无需认证）
+   * @param data 配置列表查询参数
    */
-  listPublicSettings(config?: AxiosRequestConfig) {
+  listPublicSettings(data: SettingSearchParam, config?: AxiosRequestConfig) {
     return http.request<SettingDto[]>("post", `${USER_BASE_URL}/v1/system/settings/list/public`, {
+      data,
       ...config,
     });
   },
