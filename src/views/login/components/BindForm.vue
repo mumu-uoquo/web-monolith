@@ -210,9 +210,9 @@ onUnmounted(() => {
 
   &__icon-wrap {
     display: flex;
+    flex-shrink: 0;
     align-items: center;
     justify-content: center;
-    flex-shrink: 0;
     width: 36px;
     height: 36px;
     border-radius: 8px;

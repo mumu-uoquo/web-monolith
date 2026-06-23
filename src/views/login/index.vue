@@ -64,6 +64,16 @@
             />
           </div>
 
+          <!-- 企业微信扫码 -->
+          <div v-else-if="component === 'wecom'" key="wecom" class="login-card__form">
+            <WecomQrCode
+              @update:model-value="component = $event"
+              @on-submit="handleLoginSuccess"
+              @need-bind="handleNeedBind"
+              @need-mfa="handleNeedMfa"
+            />
+          </div>
+
           <!-- 手机号登录 -->
           <div v-else-if="component === 'phone'" key="phone" class="login-card__form">
             <PhoneForm
@@ -96,7 +106,7 @@
 
         <!-- 第三方登录（仅在 login / phone / wechat 模式下显示） -->
         <div
-          v-if="['login', 'phone', 'mfa', 'wechat', 'bind'].includes(component)"
+          v-if="['login', 'phone', 'mfa', 'wechat', 'wecom', 'bind'].includes(component)"
           class="login-form__social"
         >
           <div class="social-divider">
@@ -112,6 +122,15 @@
                 @click="component = component === 'wechat' ? 'login' : 'wechat'"
               >
                 <span class="i-svg:site-wechat" />
+              </span>
+            </el-tooltip>
+            <el-tooltip :content="t('login.wecomLogin')" placement="top">
+              <span
+                class="social-icons__item"
+                :class="{ active: component === 'wecom' }"
+                @click="component = component === 'wecom' ? 'login' : 'wecom'"
+              >
+                <el-icon><ChatDotSquare /></el-icon>
               </span>
             </el-tooltip>
             <el-tooltip :content="t('login.phoneLogin')" placement="top">
@@ -163,6 +182,7 @@ import AccountForm from "./components/AccountForm.vue";
 import MfaForm from "./components/MfaForm.vue";
 import PhoneForm from "./components/PhoneForm.vue";
 import WechatQrCode from "./components/WechatQrCode.vue";
+import WecomQrCode from "./components/WecomQrCode.vue";
 import BindForm from "./components/BindForm.vue";
 
 /* ***************************** 参数定义 ********************************* */
@@ -208,7 +228,7 @@ function parseRedirect(): { path: string; queryParams: Record<string, string> } 
 }
 
 /* ***************************** 视图切换 ********************************* */
-type LayoutMap = "login" | "register" | "resetPwd" | "mfa" | "phone" | "wechat" | "bind";
+type LayoutMap = "login" | "register" | "resetPwd" | "mfa" | "phone" | "wechat" | "wecom" | "bind";
 const component = ref<LayoutMap>("login");
 const mfaTempToken = ref<string>(""); // MFA 临时 token（通用）
 const bindCredential = ref<string>(""); // 第三方绑定用临时 token（通用）

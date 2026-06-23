@@ -1,11 +1,9 @@
 <template>
-  <div class="wechat-qr">
-    <h3 class="login-form__title text-center">{{ t("login.wechatLogin") }}</h3>
-
+  <div class="wecom-qr">
     <div class="qr-wrapper">
       <!-- 二维码容器 -->
       <div class="qr-box" :class="{ expired: isExpired }">
-        <!-- 微信 WxLogin 二维码挂载点（始终存在，便于 WxLogin 渲染 iframe） -->
+        <!-- 企业微信登录面板挂载点（ww.createWWLoginPanel 会在此注入 iframe） -->
         <div :id="CONTAINER_ID" class="qr-frame" />
 
         <!-- 加载遮罩 -->
@@ -13,7 +11,7 @@
           <el-icon class="is-loading" size="32"><Loading /></el-icon>
         </div>
 
-        <!-- 过期遮罩 -->
+        <!-- 过期/错误遮罩 -->
         <Transition name="fade">
           <div v-if="isExpired" class="qr-overlay qr-expired-mask" @click="refresh">
             <el-icon size="28"><RefreshRight /></el-icon>
@@ -22,26 +20,6 @@
           </div>
         </Transition>
       </div>
-
-      <!-- 状态提示 -->
-      <div class="qr-status">
-        <template v-if="isExpired">
-          <el-icon size="14" color="var(--el-color-danger)"><CircleCloseFilled /></el-icon>
-          <el-text type="danger" size="small">{{ t("login.qrExpired") }}</el-text>
-        </template>
-        <template v-else-if="scanStatus === 'confirmed'">
-          <el-icon size="14" color="var(--el-color-success)"><SuccessFilled /></el-icon>
-          <el-text type="success" size="small">{{ t("login.qrConfirmed") }}</el-text>
-        </template>
-        <template v-else>
-          <el-icon size="14" color="var(--el-text-color-placeholder)"><Timer /></el-icon>
-          <el-text type="info" size="small">{{ t("login.qrWaiting") }}</el-text>
-        </template>
-      </div>
-
-      <el-text size="small" type="info" class="qr-guide">
-        {{ t("login.wechatQrGuide") }}
-      </el-text>
     </div>
 
     <!-- 返回账号登录 -->
@@ -54,13 +32,7 @@
 </template>
 
 <script setup lang="ts">
-import {
-  Loading,
-  RefreshRight,
-  Timer,
-  SuccessFilled,
-  CircleCloseFilled,
-} from "@element-plus/icons-vue";
+import { Loading, RefreshRight } from "@element-plus/icons-vue";
 import { useUserStore } from "@/stores";
 import { AuthStorage } from "@/utils/auth";
 import { appConfig } from "@/settings";
@@ -81,94 +53,108 @@ const { t } = useI18n();
 const userStore = useUserStore();
 
 // 凭证类型 / 场景
-const SCENE = "wechat";
-// 二维码本地有效期（秒），超时后重新拉取配置生成新码
+const SCENE = "wecom";
+// 二维码本地有效期（秒），超时后重新拉取配置生成新面板
 const QR_TTL = 300;
-// WxLogin 二维码挂载点 id
-const CONTAINER_ID = "wx-login-container";
-// 微信官方 JS（使用 https 避免 https 页面的混合内容拦截）
-const WX_LOGIN_JS = "https://res.wx.qq.com/connect/zh_CN/htmledition/js/wxLogin.js";
+// 企业微信登录面板挂载点 id
+const CONTAINER_ID = "ww-login-container";
+// 企业微信 JS-SDK 2.0（提供 ww.createWWLoginPanel），版本可按需升级
+const WECOM_JSSDK = "https://wwcdn.weixin.qq.com/node/wework/wwopen/js/wecom-jssdk-2.4.0.js";
 
 const loading = ref(true);
 const isExpired = ref(false);
-const scanStatus = ref<"waiting" | "confirmed">("waiting");
-const currentState = ref<string>(""); // 本次授权的 state，用于状态轮询
 
-let pollTimer: ReturnType<typeof setInterval> | null = null;
+// ww.createWWLoginPanel 返回的面板实例（含 unmount 方法）
+let panel: { el?: HTMLIFrameElement; unmount?: () => void } | null = null;
 let expireTimer: ReturnType<typeof setTimeout> | null = null;
 
 function clearTimers() {
-  if (pollTimer) {
-    clearInterval(pollTimer);
-    pollTimer = null;
-  }
   if (expireTimer) {
     clearTimeout(expireTimer);
     expireTimer = null;
   }
 }
 
-/* ***************************** 加载微信 JS ********************************* */
-let wxScriptPromise: Promise<void> | null = null;
-function loadWxLoginScript(): Promise<void> {
-  if ((window as any).WxLogin) return Promise.resolve();
-  if (wxScriptPromise) return wxScriptPromise;
-  wxScriptPromise = new Promise<void>((resolve, reject) => {
+function unmountPanel() {
+  try {
+    panel?.unmount?.();
+  } catch {
+    // ignore
+  }
+  panel = null;
+}
+
+/* ***************************** 加载企业微信 JS-SDK ********************************* */
+let sdkPromise: Promise<void> | null = null;
+function loadWecomSdk(): Promise<void> {
+  if ((window as any).ww?.createWWLoginPanel) return Promise.resolve();
+  if (sdkPromise) return sdkPromise;
+  sdkPromise = new Promise<void>((resolve, reject) => {
     const script = document.createElement("script");
-    script.src = WX_LOGIN_JS;
+    script.src = WECOM_JSSDK;
     script.async = true;
     script.onload = () => resolve();
     script.onerror = () => {
-      wxScriptPromise = null;
-      reject(new Error("wxLogin.js 加载失败"));
+      sdkPromise = null;
+      reject(new Error("企业微信 JS-SDK 加载失败"));
     };
     document.head.appendChild(script);
   });
-  return wxScriptPromise;
+  return sdkPromise;
 }
 
-/* ***************************** 渲染二维码 ********************************* */
-async function renderQrCode(cfg: CredentialConfigDto) {
-  await loadWxLoginScript();
+/* ***************************** 渲染登录面板 ********************************* */
+async function renderPanel(cfg: CredentialConfigDto) {
+  await loadWecomSdk();
   await nextTick();
   // 清空容器，避免重复渲染叠加
   const el = document.getElementById(CONTAINER_ID);
   if (el) el.innerHTML = "";
-  const isDark = document.documentElement.classList.contains("dark");
 
-  new (window as any).WxLogin({
-    self_redirect: true, // 在 iframe 内部回跳，不跳转整个页面
-    id: CONTAINER_ID,
-    appid: cfg.appid || "",
-    scope: "snsapi_login,snsapi_base",
-    redirect_uri: encodeURIComponent(cfg.redirectUri || ""),
-    state: cfg.state || "",
-    style: isDark ? "white" : "black",
-    stylelite: 1,
+  const ww = (window as any).ww;
+  panel = ww.createWWLoginPanel({
+    el: `#${CONTAINER_ID}`,
+    params: {
+      login_type: "CorpApp", // 企业自建应用登录
+      appid: cfg.appid || "", // 企业 corpid
+      agentid: cfg.agentId || "", // 自建应用 agentid
+      redirect_uri: cfg.redirectUri || "", // 由后端配置，SDK 内部会做编码
+      state: cfg.state || "",
+      redirect_type: "callback", // 回调模式：扫码成功后通过 onLoginSuccess 返回 code，不跳转页面
+      panel_size: "small", // 320x380px
+    },
+    onLoginSuccess: ({ code }: { code: string }) => {
+      clearTimers();
+      doCredentialLogin(code);
+    },
+    onLoginFail: () => {
+      // 登录失败，标记失效允许重试
+      isExpired.value = true;
+      clearTimers();
+    },
+    onCheckWeComLogin: () => {
+      // 桌面端企业微信登录态回调，暂不处理
+    },
   });
 }
 
 /* ***************************** 主流程 ********************************* */
 /**
- * 1. 获取微信配置 → 2/3. 加载脚本并渲染二维码 → 4. 轮询扫码状态
+ * 1. 获取企业微信配置 → 2/3. 加载 SDK 并渲染登录面板 → 等待 onLoginSuccess 回调
  */
-async function loadQrCode() {
+async function loadPanel() {
   clearTimers();
+  unmountPanel();
   loading.value = true;
   isExpired.value = false;
-  scanStatus.value = "waiting";
   try {
     const cfg = await AuthAPI.credentialConfig({ scene: SCENE });
-    currentState.value = cfg.state || "";
-    await renderQrCode(cfg);
+    await renderPanel(cfg);
     loading.value = false;
-    // 6. 超时标记失效并停止轮询
+    // 超时标记失效
     expireTimer = setTimeout(() => {
       isExpired.value = true;
-      clearTimers();
     }, QR_TTL * 1000);
-    // 4. 轮询扫码状态
-    startPolling();
   } catch {
     loading.value = false;
     isExpired.value = true; // 失败也允许点击重试
@@ -176,25 +162,7 @@ async function loadQrCode() {
 }
 
 /**
- * 4. 轮询 credentialStatus 获取扫码后的 code
- */
-function startPolling() {
-  pollTimer = setInterval(async () => {
-    try {
-      const res = await AuthAPI.credentialStatus({ scene: SCENE, state: currentState.value });
-      if (res.status === "confirmed" && res.code) {
-        scanStatus.value = "confirmed";
-        clearTimers();
-        await doCredentialLogin(res.code);
-      }
-    } catch {
-      // 忽略单次轮询错误，等待下一次
-    }
-  }, 2000);
-}
-
-/**
- * 5. 拿到 code 后按统一登录流程调用 credentialLogin
+ * 拿到 code 后按统一登录流程调用 credentialLogin
  */
 async function doCredentialLogin(code: string) {
   try {
@@ -215,29 +183,30 @@ async function doCredentialLogin(code: string) {
       emits("on-submit");
     }
   } catch {
-    // 登录失败，重新生成二维码
+    // 登录失败，重新生成面板
     refresh();
   }
 }
 
 /**
- * 6. 二维码超时/失败后重新拉取配置并生成新码
+ * 二维码超时/失败后重新拉取配置并生成新面板
  */
 function refresh() {
-  loadQrCode();
+  loadPanel();
 }
 
 onMounted(() => {
-  loadQrCode();
+  loadPanel();
 });
 
 onUnmounted(() => {
   clearTimers();
+  unmountPanel();
 });
 </script>
 
 <style lang="scss" scoped>
-.wechat-qr {
+.wecom-qr {
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -256,7 +225,7 @@ onUnmounted(() => {
   align-items: center;
   justify-content: center;
   width: 100%;
-  height: 190px;
+  height: 320px;
   overflow: hidden;
   background: var(--el-fill-color-blank);
   border: 1px solid var(--el-border-color-light);
@@ -269,22 +238,17 @@ onUnmounted(() => {
 }
 
 .qr-frame {
-  // 微信二维码在 iframe 内靠顶部排版，下移此偏移量使其在窗口内垂直居中（可按需微调）
-  --wx-qr-offset: 14px;
-  position: relative;
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: center;
   width: 100%;
-  height: 190px;
-  overflow: hidden;
+  min-height: 300px;
 
-  // WxLogin 注入的 iframe：限制高度为 190px，并向下偏移使二维码垂直居中
+  // 企业微信面板注入的 iframe 居中显示
   :deep(iframe) {
     display: block;
-    width: 100%;
-    height: 190px !important;
-    margin-top: var(--wx-qr-offset);
+    margin: 0 auto;
+    border: 0;
   }
 }
 
@@ -320,17 +284,6 @@ onUnmounted(() => {
     font-weight: 400;
     opacity: 0.8;
   }
-}
-
-.qr-status {
-  display: flex;
-  gap: 4px;
-  align-items: center;
-}
-
-.qr-guide {
-  text-align: center;
-  white-space: pre-wrap;
 }
 
 .fade-enter-active,
