@@ -60,6 +60,7 @@
               @update:model-value="component = $event"
               @on-submit="handleLoginSuccess"
               @need-bind="handleNeedBind"
+              @need-mfa="handleNeedMfa"
             />
           </div>
 
@@ -72,10 +73,11 @@
             />
           </div>
 
-          <!-- 微信绑定账号 -->
+          <!-- 第三方登录首次绑定账号 -->
           <div v-else-if="component === 'bind'" key="bind" class="login-card__form">
-            <WechatBindForm
-              :open-id="bindCredential"
+            <BindForm
+              :temp-token="bindCredential"
+              :provider="bindProvider"
               @update:model-value="component = $event"
               @on-submit="handleLoginSuccess"
               @need-mfa="handleNeedMfa"
@@ -161,7 +163,7 @@ import AccountForm from "./components/AccountForm.vue";
 import MfaForm from "./components/MfaForm.vue";
 import PhoneForm from "./components/PhoneForm.vue";
 import WechatQrCode from "./components/WechatQrCode.vue";
-import WechatBindForm from "./components/WechatBindForm.vue";
+import BindForm from "./components/BindForm.vue";
 
 /* ***************************** 参数定义 ********************************* */
 const { t } = useI18n();
@@ -209,7 +211,8 @@ function parseRedirect(): { path: string; queryParams: Record<string, string> } 
 type LayoutMap = "login" | "register" | "resetPwd" | "mfa" | "phone" | "wechat" | "bind";
 const component = ref<LayoutMap>("login");
 const mfaTempToken = ref<string>(""); // MFA 临时 token（通用）
-const bindCredential = ref<string>(""); // 第三方绑定凭证（如微信 openId，通用）
+const bindCredential = ref<string>(""); // 第三方绑定用临时 token（通用）
+const bindProvider = ref<string>("wechat"); // 第三方凭证类型，用于绑定表单图标展示
 
 function showForm(type: LayoutMap, payload?: string) {
   if (type === "mfa" && payload) {
@@ -236,12 +239,14 @@ function handleNeedMfa(tempToken: string) {
  * 需要绑定账号（通用）
  *
  * 第三方凭证登录（微信 / 企微等）在系统中未找到关联账号时触发，
- * 携带凭证标识（如微信 openId）切换到绑定表单。
+ * 携带绑定用临时 token 切换到通用绑定表单。
  *
- * @param credential 第三方凭证标识（如微信 openId）
+ * @param tempToken 第三方凭证登录返回的临时 token
+ * @param provider 第三方凭证类型（wechat / wecom 等），用于展示对应图标
  */
-function handleNeedBind(credential: string) {
-  bindCredential.value = credential;
+function handleNeedBind(tempToken: string, provider = "wechat") {
+  bindCredential.value = tempToken;
+  bindProvider.value = provider;
   component.value = "bind";
 }
 
