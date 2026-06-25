@@ -45,6 +45,23 @@ import { ElMessage } from "element-plus";
 import type { FormInstance, FormRules } from "element-plus";
 import SystemAPI from "@/api/system";
 import type { SettingSaveParam, SettingDto } from "@/api/system";
+import { decrypt } from "@/utils/crypto";
+
+/**
+ * 对配置项的 configValue 做 taes 解密
+ * - 空值直接返回原值
+ * - 解密失败时降级返回原文
+ */
+function decryptSettings(settings: SettingDto[]): SettingDto[] {
+  return settings.map((item) => {
+    if (!item.configValue) return item;
+    try {
+      return { ...item, configValue: decrypt.taes(item.configValue) || item.configValue };
+    } catch {
+      return item;
+    }
+  });
+}
 
 interface SecurityForm {
   sessionTimeout: number;
@@ -223,7 +240,7 @@ async function loadSettings() {
   loading.value = true;
   try {
     const data = await SystemAPI.listSettingsByCode({ prefix: "security." });
-    settingsToForm(data);
+    settingsToForm(decryptSettings(data));
   } catch {
     ElMessage.error("加载配置失败，请刷新重试");
   } finally {

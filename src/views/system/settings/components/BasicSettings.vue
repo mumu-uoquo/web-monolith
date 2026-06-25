@@ -10,6 +10,18 @@
       <el-form-item label="系统标题" prop="title">
         <el-input v-model="form.title" placeholder="请输入系统标题" />
       </el-form-item>
+      <el-divider content-position="left">微信消息推送</el-divider>
+      <el-form-item label="TOKEN令牌" prop="wechatPushToken">
+        <el-input v-model="form.wechatPushToken" placeholder="请输入微信推送 Token" />
+      </el-form-item>
+      <el-form-item label="消息AES秘钥" prop="wechatPushAesKey">
+        <el-input
+          v-model="form.wechatPushAesKey"
+          type="password"
+          show-password
+          placeholder="请输入微信推送 EncodingAESKey"
+        />
+      </el-form-item>
       <el-form-item>
         <el-button type="primary" :loading="saving" @click="handleSave">保存</el-button>
       </el-form-item>
@@ -23,11 +35,30 @@ import { ElMessage } from "element-plus";
 import type { FormInstance, FormRules } from "element-plus";
 import SystemAPI from "@/api/system";
 import type { SettingSaveParam, SettingDto } from "@/api/system";
+import { decrypt } from "@/utils/crypto";
+
+/**
+ * 对配置项的 configValue 做 taes 解密
+ * - 空值直接返回原值
+ * - 解密失败时降级返回原文
+ */
+function decryptSettings(settings: SettingDto[]): SettingDto[] {
+  return settings.map((item) => {
+    if (!item.configValue) return item;
+    try {
+      return { ...item, configValue: decrypt.taes(item.configValue) || item.configValue };
+    } catch {
+      return item;
+    }
+  });
+}
 
 interface BasicForm {
   registerEnable: boolean;
   watermarkEnable: boolean;
   title: string;
+  wechatPushToken: string;
+  wechatPushAesKey: string;
 }
 
 const CONFIG_MAP: Record<
@@ -53,12 +84,24 @@ const CONFIG_MAP: Record<
     fromValue: (v) => v ?? "",
     toValue: (v) => v,
   },
+  "sys.wechat.push.token": {
+    field: "wechatPushToken",
+    fromValue: (v) => v ?? "",
+    toValue: (v) => v,
+  },
+  "sys.wechat.push.aeskey": {
+    field: "wechatPushAesKey",
+    fromValue: (v) => v ?? "",
+    toValue: (v) => v,
+  },
 };
 
 const form = reactive<BasicForm>({
   registerEnable: true,
   watermarkEnable: false,
   title: "",
+  wechatPushToken: "",
+  wechatPushAesKey: "",
 });
 
 const formRef = ref<FormInstance>();
@@ -101,7 +144,7 @@ async function loadSettings() {
   loading.value = true;
   try {
     const data = await SystemAPI.listSettingsByCode({ prefix: "sys." });
-    settingsToForm(data);
+    settingsToForm(decryptSettings(data));
   } catch {
     ElMessage.error("加载配置失败，请刷新重试");
   } finally {
