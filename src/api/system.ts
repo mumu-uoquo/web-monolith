@@ -198,7 +198,7 @@ const SystemAPI = {
    * @param data 配置编码查询参数
    */
   getSystemSetting(data: SettingCodeParam, config?: AxiosRequestConfig) {
-    return http.request<SettingDto>("post", `${USER_BASE_URL}/v1/system/settings/code`, {
+    return http.request<SettingDto>("post", `${USER_BASE_URL}/v1/system/settings/info`, {
       data,
       ...config,
     });

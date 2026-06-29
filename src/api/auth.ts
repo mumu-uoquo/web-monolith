@@ -102,6 +102,28 @@ const AuthAPI = {
   },
 
   /**
+   * 获取运维登录二维码
+   * @param data 获取运维登录二维码
+   */
+  opsConfig(data: OpsConfigParam, config?: AxiosRequestConfig) {
+    return http.request<OpsConfigDto>("post", `${USER_BASE_URL}/v1/auth/ops/config`, {
+      data,
+      ...config,
+    });
+  },
+
+  /**
+   * 运维登录
+   * @param data 运维登录
+   */
+  opsLogin(data: OpsLoginParam, config?: AxiosRequestConfig) {
+    return http.request<UserAuthDto>("post", `${USER_BASE_URL}/v1/auth/ops/login`, {
+      data,
+      ...config,
+    });
+  },
+
+  /**
    * 根据角色获取功能列表（注：仅用于切换角色）
    * @param data 角色ID
    */
@@ -252,6 +274,8 @@ export interface CredentialLoginParam {
   credentialValue: string;
   /** 是否记住 */
   rememberMe?: boolean;
+  /** 授权 state（须与 /credential/config 下发的一致） */
+  state: string;
   /** UA（主要用于移动端登录） */
   userAgent?: string;
 }
@@ -332,6 +356,42 @@ export interface MfaLoginParam {
   tempToken: string;
   /** 双因子动态码 */
   totpCode: string;
+  /** UA（主要用于移动端登录） */
+  userAgent?: string;
+}
+
+/**
+ * 运维登录二维码配置
+ */
+export interface OpsConfigDto {
+  /** 二维码图片（base64 data uri） */
+  qrCode?: string;
+}
+
+/**
+ * 获取运维登录二维码
+ */
+export interface OpsConfigParam {
+  /** 运维账号 */
+  account: string;
+  /** 手机号 */
+  phone: string;
+}
+
+/**
+ * 运维登录
+ */
+export interface OpsLoginParam {
+  /** 运维账号 */
+  account: string;
+  /** 发起方版本 */
+  appVersion?: string;
+  /** 动态口令 */
+  dynamicCode: string;
+  /** 手机号 */
+  phone: string;
+  /** 是否记住 */
+  rememberMe?: boolean;
   /** UA（主要用于移动端登录） */
   userAgent?: string;
 }
