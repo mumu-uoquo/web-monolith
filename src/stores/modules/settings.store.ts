@@ -24,7 +24,7 @@ interface PublicConfig {
   rsaPublicKey: string;
   /** 本地与服务器的时间差（ms），正值表示服务器比本地快 */
   serverTimeDiff: number;
-  /** 是否强制开启水印：sys.watermark.enable */
+  /** 是否强制开启水印：sys.watermark.enabled */
   watermarkEnable: boolean;
 }
 
@@ -171,7 +171,7 @@ export const useSettingsStore = defineStore("setting", () => {
       _publicConfig.value.rsaPublicKey = get("security.rsa.public-key");
 
       // 水印开关
-      const watermarkRaw = get("sys.watermark.enable");
+      const watermarkRaw = get("sys.watermark.enabled");
       _publicConfig.value.watermarkEnable = watermarkRaw === "true";
       if (_publicConfig.value.watermarkEnable) {
         showWatermark.value = true;

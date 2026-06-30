@@ -76,12 +76,7 @@
           <el-input v-model="form.smsAppId" placeholder="请输入 AppID" />
         </el-form-item>
         <el-form-item label="AppSecret" prop="smsAppSecret">
-          <el-input
-            v-model="form.smsAppSecret"
-            type="password"
-            show-password
-            placeholder="请输入 AppSecret"
-          />
+          <el-input v-model="form.smsAppSecret" placeholder="请输入 AppSecret" />
         </el-form-item>
         <el-form-item label="签名" prop="smsSign">
           <el-input v-model="form.smsSign" placeholder="请输入签名" />
@@ -98,12 +93,7 @@
           <el-input v-model="form.wechatAppId" placeholder="请输入 AppID" />
         </el-form-item>
         <el-form-item label="AppSecret" prop="wechatAppSecret">
-          <el-input
-            v-model="form.wechatAppSecret"
-            type="password"
-            show-password
-            placeholder="请输入 AppSecret"
-          />
+          <el-input v-model="form.wechatAppSecret" placeholder="请输入 AppSecret" />
         </el-form-item>
         <el-form-item label="回调地址" prop="wechatCallbackUrl">
           <el-input
@@ -123,12 +113,7 @@
           <el-input v-model="form.wecomAgentId" placeholder="请输入应用 AgentID" />
         </el-form-item>
         <el-form-item label="Secret" prop="wecomSecret">
-          <el-input
-            v-model="form.wecomSecret"
-            type="password"
-            show-password
-            placeholder="请输入应用 Secret"
-          />
+          <el-input v-model="form.wecomSecret" placeholder="请输入应用 Secret" />
         </el-form-item>
         <el-form-item label="回调地址" prop="wecomRedirectUri">
           <el-input
@@ -204,32 +189,32 @@ const CONFIG_MAP: Record<
     toValue: (v: any) => string;
   }
 > = {
-  "login.password.enable": {
+  "login.password.enabled": {
     field: "passwordEnable",
     fromValue: (v) => v !== "false",
     toValue: (v) => String(v),
   },
-  "login.sms.enable": {
+  "login.sms.enabled": {
     field: "smsEnable",
     fromValue: (v) => v !== "false",
     toValue: (v) => String(v),
   },
-  "login.wechat.enable": {
+  "login.wechat.enabled": {
     field: "wechatEnable",
     fromValue: (v) => v !== "false",
     toValue: (v) => String(v),
   },
-  "login.wecom.enable": {
+  "login.wecom.enabled": {
     field: "wecomEnable",
     fromValue: (v) => v === "true",
     toValue: (v) => String(v),
   },
-  "login.mfa.enable": {
+  "login.mfa.enabled": {
     field: "mfaEnable",
     fromValue: (v) => v === "true",
     toValue: (v) => String(v),
   },
-  "login.offline.enable": {
+  "login.offline.enabled": {
     field: "offlineEnable",
     fromValue: (v) => v === "true",
     toValue: (v) => String(v),
@@ -587,8 +572,8 @@ onMounted(async () => {
 
 .mode-tip-icon {
   margin-left: 2px;
-  color: var(--el-color-info);
   vertical-align: middle;
+  color: var(--el-color-info);
   cursor: help;
 }
 
@@ -601,8 +586,8 @@ onMounted(async () => {
 
 .emergency-mode-item {
   display: flex;
-  align-items: center;
   gap: 12px;
+  align-items: center;
   min-height: 32px;
 }
 

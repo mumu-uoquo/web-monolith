@@ -15,12 +15,7 @@
         <el-input v-model="form.wechatPushToken" placeholder="请输入微信推送 Token" />
       </el-form-item>
       <el-form-item label="消息AES秘钥" prop="wechatPushAesKey">
-        <el-input
-          v-model="form.wechatPushAesKey"
-          type="password"
-          show-password
-          placeholder="请输入微信推送 EncodingAESKey"
-        />
+        <el-input v-model="form.wechatPushAesKey" placeholder="请输入微信推送 EncodingAESKey" />
       </el-form-item>
       <el-form-item>
         <el-button type="primary" :loading="saving" @click="handleSave">保存</el-button>
@@ -69,12 +64,12 @@ const CONFIG_MAP: Record<
     toValue: (v: any) => string;
   }
 > = {
-  "sys.register.enable": {
+  "sys.register.enabled": {
     field: "registerEnable",
     fromValue: (v) => v !== "false",
     toValue: (v) => String(v),
   },
-  "sys.watermark.enable": {
+  "sys.watermark.enabled": {
     field: "watermarkEnable",
     fromValue: (v) => v === "true",
     toValue: (v) => String(v),
