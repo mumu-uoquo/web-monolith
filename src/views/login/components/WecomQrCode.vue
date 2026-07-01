@@ -1,10 +1,18 @@
 <template>
   <div class="wecom-qr">
+    <h3 v-if="renderType === 'oauth'" class="login-form__title text-center">
+      {{ t("login.wecomLogin") }}
+    </h3>
+
     <div class="qr-wrapper">
       <!-- 二维码容器 -->
       <div class="qr-box" :class="{ expired: isExpired }">
-        <!-- 企业微信登录面板挂载点（ww.createWWLoginPanel 会在此注入 iframe） -->
-        <div :id="CONTAINER_ID" class="qr-frame" />
+        <!--
+          renderType === 'wxjs'：企业微信官方 JS-SDK（ww.createWWLoginPanel）渲染 iframe
+          renderType === 'oauth'：自行拼接 OAuth2 URL 并用 qrcode 库生成二维码
+        -->
+        <div v-if="renderType === 'wxjs'" :id="CONTAINER_ID" class="qr-frame" />
+        <canvas v-else ref="canvasRef" class="qr-canvas" />
 
         <!-- 加载遮罩 -->
         <div v-if="loading" class="qr-overlay">
@@ -33,6 +41,7 @@
 
 <script setup lang="ts">
 import { Loading, RefreshRight } from "@element-plus/icons-vue";
+import QRCode from "qrcode";
 import { useUserStore } from "@/stores";
 import { AuthStorage } from "@/utils/auth";
 import { appConfig } from "@/settings";
@@ -54,21 +63,32 @@ const userStore = useUserStore();
 
 // 凭证类型 / 场景
 const SCENE = "wecom";
-// 二维码本地有效期（秒），超时后重新拉取配置生成新面板
+// 二维码本地有效期（秒），超时后重新拉取配置生成新面板/码
 const QR_TTL = 300;
-// 企业微信登录面板挂载点 id
+// 企业微信登录面板挂载点 id（仅 wxjs 模式使用）
 const CONTAINER_ID = "ww-login-container";
-// 企业微信 JS-SDK 2.0（提供 ww.createWWLoginPanel），版本可按需升级
+// 企业微信 JS-SDK（仅 wxjs 模式按需加载）
 const WECOM_JSSDK = "https://wwcdn.weixin.qq.com/node/wework/wwopen/js/wecom-jssdk-2.4.0.js";
 
 const loading = ref(true);
 const isExpired = ref(false);
+const currentState = ref<string>("");
+/** 当前渲染方式，由 config 接口返回决定，默认 wxjs 保持向后兼容 */
+const renderType = ref<"wxjs" | "oauth">("wxjs");
 
-// ww.createWWLoginPanel 返回的面板实例（含 unmount 方法）
+/** canvas ref（仅 oauth 模式使用） */
+const canvasRef = ref<HTMLCanvasElement | null>(null);
+/** 企业微信面板实例（仅 wxjs 模式使用） */
 let panel: { el?: HTMLIFrameElement; unmount?: () => void } | null = null;
+
+let pollTimer: ReturnType<typeof setInterval> | null = null;
 let expireTimer: ReturnType<typeof setTimeout> | null = null;
 
 function clearTimers() {
+  if (pollTimer) {
+    clearInterval(pollTimer);
+    pollTimer = null;
+  }
   if (expireTimer) {
     clearTimeout(expireTimer);
     expireTimer = null;
@@ -84,7 +104,7 @@ function unmountPanel() {
   panel = null;
 }
 
-/* ***************************** 加载企业微信 JS-SDK ********************************* */
+/* ===================== wxjs 模式：加载企业微信 JS-SDK ===================== */
 let sdkPromise: Promise<void> | null = null;
 function loadWecomSdk(): Promise<void> {
   if ((window as any).ww?.createWWLoginPanel) return Promise.resolve();
@@ -103,32 +123,28 @@ function loadWecomSdk(): Promise<void> {
   return sdkPromise;
 }
 
-/* ***************************** 渲染登录面板 ********************************* */
-async function renderPanel(cfg: CredentialConfigDto) {
+async function renderWxjsPanel(cfg: CredentialConfigDto) {
   await loadWecomSdk();
   await nextTick();
-  // 清空容器，避免重复渲染叠加
   const el = document.getElementById(CONTAINER_ID);
   if (el) el.innerHTML = "";
-
   const ww = (window as any).ww;
   panel = ww.createWWLoginPanel({
     el: `#${CONTAINER_ID}`,
     params: {
-      login_type: "CorpApp", // 企业自建应用登录
-      appid: cfg.appid || "", // 企业 corpid
-      agentid: cfg.agentId || "", // 自建应用 agentid
-      redirect_uri: cfg.redirectUri || "", // 由后端配置，SDK 内部会做编码
+      login_type: "CorpApp",
+      appid: cfg.appid || "",
+      agentid: cfg.agentId || "",
+      redirect_uri: cfg.redirectUri || "",
       state: cfg.state || "",
-      redirect_type: "callback", // 回调模式：扫码成功后通过 onLoginSuccess 返回 code，不跳转页面
-      panel_size: "small", // 320x380px
+      redirect_type: "callback",
+      panel_size: "small",
     },
     onLoginSuccess: ({ code }: { code: string }) => {
       clearTimers();
       doCredentialLogin(code);
     },
     onLoginFail: () => {
-      // 登录失败，标记失效允许重试
       isExpired.value = true;
       clearTimers();
     },
@@ -138,65 +154,114 @@ async function renderPanel(cfg: CredentialConfigDto) {
   });
 }
 
-/* ***************************** 主流程 ********************************* */
+/* ===================== oauth 模式：拼接 URL 并自绘二维码 ===================== */
 /**
- * 1. 获取企业微信配置 → 2/3. 加载 SDK 并渲染登录面板 → 等待 onLoginSuccess 回调
+ * 企业微信网页授权 URL（使用 corpid 作为 appid）
+ * https://open.weixin.qq.com/connect/oauth2/authorize
+ *   ?appid=CORPID&redirect_uri=REDIRECT_URI&response_type=code
+ *   &scope=snsapi_base&state=STATE#wechat_redirect
+ *
+ * 参考：https://developer.work.weixin.qq.com/document/path/91335
  */
-async function loadPanel() {
+function buildOAuthUrl(cfg: CredentialConfigDto): string {
+  const params = new URLSearchParams({
+    appid: cfg.appid || "",
+    redirect_uri: cfg.redirectUri || "",
+    response_type: "code",
+    scope: "snsapi_base",
+    state: cfg.state || "",
+  });
+  return `https://open.weixin.qq.com/connect/oauth2/authorize?${params.toString()}#wechat_redirect`;
+}
+
+async function renderOAuthQrCode(cfg: CredentialConfigDto) {
+  await nextTick();
+  if (!canvasRef.value) return;
+  const isDark = document.documentElement.classList.contains("dark");
+  await QRCode.toCanvas(canvasRef.value, buildOAuthUrl(cfg), {
+    width: 200,
+    margin: 2,
+    color: {
+      dark: isDark ? "#ffffff" : "#000000",
+      light: isDark ? "#1e1e1e" : "#ffffff",
+    },
+  });
+}
+
+/* ===================== 主流程 ===================== */
+async function loadQrCode() {
   clearTimers();
   unmountPanel();
   loading.value = true;
   isExpired.value = false;
   try {
     const cfg = await AuthAPI.credentialConfig({ scene: SCENE });
-    await renderPanel(cfg);
+    currentState.value = cfg.state || "";
+    // 由后端 renderType 决定渲染方式，未返回时默认 wxjs（向后兼容）
+    renderType.value = cfg.renderType ?? "wxjs";
+
+    if (renderType.value === "oauth") {
+      await renderOAuthQrCode(cfg);
+      // oauth 模式需轮询状态
+      startPolling();
+    } else {
+      await renderWxjsPanel(cfg);
+      // wxjs 模式由 onLoginSuccess 回调驱动，无需轮询
+    }
+
     loading.value = false;
-    // 超时标记失效
     expireTimer = setTimeout(() => {
       isExpired.value = true;
+      clearTimers();
     }, QR_TTL * 1000);
   } catch {
     loading.value = false;
-    isExpired.value = true; // 失败也允许点击重试
+    isExpired.value = true;
   }
 }
 
-/**
- * 拿到 code 后按统一登录流程调用 credentialLogin
- */
+function startPolling() {
+  pollTimer = setInterval(async () => {
+    try {
+      const res = await AuthAPI.credentialStatus({ scene: SCENE, state: currentState.value });
+      if (res.status === "confirmed" && res.code) {
+        clearTimers();
+        await doCredentialLogin(res.code);
+      }
+    } catch {
+      // 忽略单次轮询错误，等待下一次
+    }
+  }, 2000);
+}
+
 async function doCredentialLogin(code: string) {
   try {
     const data = await AuthAPI.credentialLogin({
       credentialType: SCENE,
       credentialValue: code,
+      state: currentState.value,
       rememberMe: AuthStorage.getRememberMe(),
       appVersion: appConfig.version,
     });
     if (data.totpStatus === "enabled") {
-      // 开启双因子认证，accessToken 即为 MFA 临时 token
       emits("need-mfa", data.accessToken || "");
     } else if (!data.id) {
-      // 未找到关联账号，accessToken 作为绑定用临时 token
       emits("need-bind", data.accessToken || "", SCENE);
     } else {
       userStore.setUserInfo(data);
       emits("on-submit");
     }
   } catch {
-    // 登录失败，重新生成面板
     refresh();
   }
 }
 
-/**
- * 二维码超时/失败后重新拉取配置并生成新面板
- */
 function refresh() {
-  loadPanel();
+  loadQrCode();
 }
 
 onMounted(() => {
-  loadPanel();
+  loadQrCode();
 });
 
 onUnmounted(() => {
@@ -237,6 +302,7 @@ onUnmounted(() => {
   }
 }
 
+/* wxjs 模式：iframe 容器 */
 .qr-frame {
   display: flex;
   align-items: center;
@@ -244,12 +310,17 @@ onUnmounted(() => {
   width: 100%;
   min-height: 300px;
 
-  // 企业微信面板注入的 iframe 居中显示
   :deep(iframe) {
     display: block;
     margin: 0 auto;
     border: 0;
   }
+}
+
+/* oauth 模式：canvas 二维码 */
+.qr-canvas {
+  display: block;
+  border-radius: 6px;
 }
 
 .qr-overlay {
