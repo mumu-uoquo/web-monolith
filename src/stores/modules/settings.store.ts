@@ -31,6 +31,8 @@ interface PublicConfig {
   watermarkEnable: boolean;
   /** 已启用的登录方式（顺序与后端配置一致） */
   enabledLoginModes: LoginMode[];
+  /** 是否开启用户注册（sys.register.enabled） */
+  registerEnabled: boolean;
 }
 
 const _publicConfig = ref<PublicConfig>({
@@ -39,6 +41,7 @@ const _publicConfig = ref<PublicConfig>({
   serverTimeDiff: 0,
   watermarkEnable: false,
   enabledLoginModes: ["password"],
+  registerEnabled: false,
 });
 
 export const useSettingsStore = defineStore("setting", () => {
@@ -153,6 +156,7 @@ export const useSettingsStore = defineStore("setting", () => {
       serverTimeDiff: 0,
       watermarkEnable: false,
       enabledLoginModes: ["password"],
+      registerEnabled: false,
     };
 
     try {
@@ -208,6 +212,9 @@ export const useSettingsStore = defineStore("setting", () => {
       );
       // 至少保留账号密码，防止后端未配置时全空
       _publicConfig.value.enabledLoginModes = modes.length > 0 ? modes : ["password"];
+
+      // 注册开关：sys.register.enabled，未配置时默认关闭
+      _publicConfig.value.registerEnabled = get("sys.register.enabled") === "true";
     } catch {
       // 加载失败不影响正常使用，保持默认空值
     }
@@ -231,6 +238,9 @@ export const useSettingsStore = defineStore("setting", () => {
   /** 已启用的登录方式列表（由后端 login.**.enabled 配置决定） */
   const enabledLoginModes = computed(() => _publicConfig.value.enabledLoginModes);
 
+  /** 是否开启用户注册（sys.register.enabled） */
+  const registerEnabled = computed(() => _publicConfig.value.registerEnabled);
+
   return {
     settingsVisible,
     showTagsView,
@@ -251,5 +261,6 @@ export const useSettingsStore = defineStore("setting", () => {
     rsaPublicKey,
     serverTimeDiff,
     enabledLoginModes,
+    registerEnabled,
   };
 });

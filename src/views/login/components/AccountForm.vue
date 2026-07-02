@@ -84,7 +84,7 @@
     </el-form-item>
   </el-form>
 
-  <div flex-center gap-10px>
+  <div v-if="settingsStore.registerEnabled" flex-center gap-10px>
     <el-text size="default">{{ t("login.noAccount") }}</el-text>
     <el-link type="primary" underline="never" @click="showForm('register')">
       {{ t("login.reg") }}
