@@ -41,7 +41,7 @@
 
         <transition name="fade-slide" mode="out-in">
           <!-- 账号密码登录 -->
-          <div v-if="component === 'login'" key="login" class="login-card__form">
+          <div v-if="component === 'password'" key="password" class="login-card__form">
             <AccountForm
               @on-submit="handleLoginSuccess"
               @need-mfa="handleNeedMfa"
@@ -53,6 +53,7 @@
           <div v-else-if="component === 'mfa'" key="mfa" class="login-card__form">
             <MfaForm
               :temp-token="mfaTempToken"
+              :return-to="LOGIN_MODE_COMPONENT[activeLoginMode]"
               @mfa-success="handleLoginSuccess"
               @update:model-value="component = $event"
             />
@@ -249,7 +250,7 @@ function handleTitleClick() {
 
 /* ***************************** 视图切换 ********************************* */
 type LayoutMap =
-  | "login"
+  | "password"
   | "register"
   | "resetPwd"
   | "mfa"
@@ -258,7 +259,7 @@ type LayoutMap =
   | "wecom"
   | "emerg"
   | "bind";
-const component = ref<LayoutMap>("login");
+const component = ref<LayoutMap>("password");
 const mfaTempToken = ref<string>(""); // MFA 临时 token（通用）
 const bindCredential = ref<string>(""); // 第三方绑定用临时 token（通用）
 const bindProvider = ref<string>("wechat"); // 第三方凭证类型，用于绑定表单图标展示
@@ -286,7 +287,7 @@ function loginModeLabel(mode: LoginMode): string {
 
 /** 登录方式 → component key */
 const LOGIN_MODE_COMPONENT: Record<LoginMode, LayoutMap> = {
-  password: "login",
+  password: "password",
   sms: "phone",
   wechat: "wechat",
   wecom: "wecom",

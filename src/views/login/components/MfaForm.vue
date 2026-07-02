@@ -34,6 +34,7 @@ import AuthAPI, { type MfaLoginParam } from "@/api/auth";
 /* ***************************** 参数定义 ********************************* */
 const props = defineProps<{
   tempToken: string;
+  returnTo?: string;
 }>();
 
 const emits = defineEmits<{
@@ -94,6 +95,6 @@ function toLogin() {
   totpCode.value = "";
   errorMsg.value = "";
   loading.value = false;
-  emits("update:modelValue", "login");
+  emits("update:modelValue", props.returnTo ?? "password");
 }
 </script>
