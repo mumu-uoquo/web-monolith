@@ -1,6 +1,6 @@
 <template>
   <div>
-    <h3 class="login-form__title text-center">MFA 验证</h3>
+    <h3 class="login-form__title text-center">{{ t("login.mfa.title") }}</h3>
     <el-form ref="mfaFormRef" :model="formData" :rules="rules" size="large">
       <el-form-item prop="totpCode">
         <el-input
@@ -43,6 +43,7 @@ const emits = defineEmits<{
 }>();
 
 const userStore = useUserStore();
+const { t } = useI18n();
 
 /* ***************************** 内部状态 ********************************* */
 const totpCode = ref<string>("");

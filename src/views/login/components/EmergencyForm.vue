@@ -3,7 +3,7 @@
     <h3 class="login-form__title text-center">{{ t("login.emergencyLogin") }}</h3>
 
     <div style="margin-bottom: 16px">
-      <el-alert type="warning" show-icon :closable="false" :title="t('login.emergencyAlert')" />
+      <el-alert type="warning" show-icon :closable="false" :title="t('login.emerg.alert')" />
     </div>
 
     <el-form-item prop="account">
@@ -17,7 +17,7 @@
     <el-form-item prop="totpCode">
       <el-input
         v-model="formData.totpCode"
-        :placeholder="t('login.totpCode')"
+        :placeholder="t('login.emerg.totpCode')"
         maxlength="6"
         @input="handleTotpInput"
         @keyup.enter="handleSubmit"
@@ -63,8 +63,8 @@ const formRef = ref();
 const rules = {
   account: [{ required: true, message: t("login.message.username.required"), trigger: "blur" }],
   totpCode: [
-    { required: true, message: t("login.message.totpCode.required"), trigger: "blur" },
-    { pattern: /^\d{6}$/, message: t("login.message.totpCode.invalid"), trigger: "blur" },
+    { required: true, message: t("login.emerg.message.totpCode.required"), trigger: "blur" },
+    { pattern: /^\d{6}$/, message: t("login.emerg.message.totpCode.invalid"), trigger: "blur" },
   ],
 };
 

@@ -9,7 +9,7 @@
   >
     <!-- 用户名 -->
     <el-form-item prop="account">
-      <el-input v-model.trim="loginData.account" :placeholder="t('login.username')">
+      <el-input v-model.trim="loginData.account" :placeholder="t('login.account.username')">
         <template #prefix>
           <el-icon><User /></el-icon>
         </template>
@@ -21,7 +21,7 @@
       <el-form-item prop="password">
         <el-input
           v-model.trim="loginData.password"
-          :placeholder="t('login.password')"
+          :placeholder="t('login.account.password')"
           type="password"
           show-password
           @keyup.enter="handleLoginSubmit"
@@ -72,7 +72,7 @@
         {{ t("login.rememberMe") }}
       </el-checkbox>
       <el-link type="primary" underline="never" @click="showForm('resetPwd')">
-        {{ t("login.forgetPassword") }}
+        {{ t("login.account.forgetPassword") }}
       </el-link>
     </div>
 
@@ -85,9 +85,9 @@
   </el-form>
 
   <div v-if="settingsStore.registerEnabled" flex-center gap-10px>
-    <el-text size="default">{{ t("login.noAccount") }}</el-text>
+    <el-text size="default">{{ t("login.account.noAccount") }}</el-text>
     <el-link type="primary" underline="never" @click="showForm('register')">
-      {{ t("login.reg") }}
+      {{ t("login.account.reg") }}
     </el-link>
   </div>
 </template>

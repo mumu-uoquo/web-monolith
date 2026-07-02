@@ -6,8 +6,8 @@
         <span :class="providerIcon" class="bind-header__icon" />
       </div>
       <div class="bind-header__text">
-        <h3 class="login-form__title">{{ t("login.bindTitle") }}</h3>
-        <el-text type="info" size="small">{{ t("login.bindDesc") }}</el-text>
+        <h3 class="login-form__title">{{ t("login.bind.title") }}</h3>
+        <el-text type="info" size="small">{{ t("login.bind.desc") }}</el-text>
       </div>
     </div>
 
@@ -22,7 +22,7 @@
       <el-form-item prop="account">
         <el-input
           v-model.trim="formData.account"
-          :placeholder="t('login.bindAccountPlaceholder')"
+          :placeholder="t('login.bind.accountPlaceholder')"
           autocomplete="username"
         >
           <template #prefix>
@@ -36,7 +36,7 @@
         <el-form-item prop="password">
           <el-input
             v-model.trim="formData.password"
-            :placeholder="t('login.bindPasswordPlaceholder')"
+            :placeholder="t('login.bind.passwordPlaceholder')"
             type="password"
             show-password
             autocomplete="current-password"
@@ -52,7 +52,7 @@
       <!-- 绑定并登录 -->
       <el-form-item>
         <el-button :loading="loading" type="primary" class="w-full" @click="handleSubmit">
-          {{ t("login.bindSubmit") }}
+          {{ t("login.bind.submit") }}
         </el-button>
       </el-form-item>
     </el-form>
@@ -134,9 +134,9 @@ const formData = ref({
 });
 
 const formRules = reactive({
-  account: [{ required: true, trigger: "blur", message: t("login.message.bindAccount.required") }],
+  account: [{ required: true, trigger: "blur", message: t("login.bind.message.account.required") }],
   password: [
-    { required: true, trigger: "blur", message: t("login.message.bindPassword.required") },
+    { required: true, trigger: "blur", message: t("login.bind.message.password.required") },
     { min: 6, trigger: "blur", message: t("login.message.password.min") },
   ],
 });
@@ -166,7 +166,7 @@ const handleSubmit = useDebounceFn(async () => {
       return;
     }
     userStore.setUserInfo(userDto);
-    ElMessage.success(t("login.bindSuccess"));
+    ElMessage.success(t("login.bind.success"));
     emits("on-submit");
   } catch {
     // error handled by request interceptor

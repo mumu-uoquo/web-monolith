@@ -23,8 +23,8 @@
         <Transition name="fade">
           <div v-if="isExpired" class="qr-overlay qr-expired-mask" @click="refresh">
             <el-icon size="28"><RefreshRight /></el-icon>
-            <span>{{ t("login.qrExpired") }}</span>
-            <span class="qr-expired-mask__sub">{{ t("login.clickRefresh") }}</span>
+            <span>{{ t("login.qr.expired") }}</span>
+            <span class="qr-expired-mask__sub">{{ t("login.qr.clickRefresh") }}</span>
           </div>
         </Transition>
       </div>

@@ -1,6 +1,6 @@
 ﻿<template>
   <div>
-    <h3 class="login-form__title text-center">{{ t("login.resetPassword") }}</h3>
+    <h3 class="login-form__title text-center">{{ t("login.resetPwd.title") }}</h3>
 
     <el-form
       ref="formRef"
@@ -80,7 +80,7 @@
         <el-form-item prop="newPassword">
           <el-input
             v-model.trim="model.newPassword"
-            :placeholder="t('login.newPassword')"
+            :placeholder="t('login.resetPwd.newPassword')"
             type="password"
             show-password
             @keyup="checkCapsLock"
@@ -113,13 +113,13 @@
       <!-- 重置按钮 -->
       <el-form-item>
         <el-button :loading="loading" type="warning" class="w-full" @click="submit">
-          {{ t("login.resetPassword") }}
+          {{ t("login.resetPwd.title") }}
         </el-button>
       </el-form-item>
     </el-form>
 
     <div flex-center gap-10px>
-      <el-text size="default">{{ t("login.thinkOfPasswd") }}</el-text>
+      <el-text size="default">{{ t("login.resetPwd.thinkOfPasswd") }}</el-text>
       <el-link type="primary" underline="never" @click="toLogin">{{ t("login.login") }}</el-link>
     </div>
   </div>
@@ -248,7 +248,7 @@ const submit = useDebounceFn(async () => {
       newPassword: encrypt.password(model.value.newPassword, settingsStore.rsaPublicKey),
     };
     await AuthAPI.resetPassword(reqData);
-    ElMessage.success(t("login.resetSuccess"));
+    ElMessage.success(t("login.resetPwd.success"));
     toLogin();
   } catch {
     getCaptcha();

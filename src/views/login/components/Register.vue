@@ -1,6 +1,6 @@
 ﻿<template>
   <div>
-    <h3 class="login-form__title text-center">{{ t("login.reg") }}</h3>
+    <h3 class="login-form__title text-center">{{ t("login.register.title") }}</h3>
 
     <el-form
       ref="formRef"
@@ -11,7 +11,10 @@
     >
       <!-- 用户名 -->
       <el-form-item prop="userName">
-        <el-input v-model.trim="model.userName" :placeholder="t('login.usernamePlaceholder')">
+        <el-input
+          v-model.trim="model.userName"
+          :placeholder="t('login.register.usernamePlaceholder')"
+        >
           <template #prefix>
             <el-icon><User /></el-icon>
           </template>
@@ -20,7 +23,10 @@
 
       <!-- 真实姓名（选填） -->
       <el-form-item prop="realName">
-        <el-input v-model.trim="model.realName" :placeholder="t('login.realNamePlaceholder')">
+        <el-input
+          v-model.trim="model.realName"
+          :placeholder="t('login.register.realNamePlaceholder')"
+        >
           <template #prefix>
             <el-icon><Avatar /></el-icon>
           </template>
@@ -131,21 +137,23 @@
       <!-- 用户协议 -->
       <el-form-item prop="agree">
         <div class="flex-y-center w-full gap-6px">
-          <el-checkbox v-model="model.agree">{{ t("login.agree") }}</el-checkbox>
-          <el-link type="primary" underline="never">{{ t("login.userAgreement") }}</el-link>
+          <el-checkbox v-model="model.agree">{{ t("login.register.agree") }}</el-checkbox>
+          <el-link type="primary" underline="never">
+            {{ t("login.register.userAgreement") }}
+          </el-link>
         </div>
       </el-form-item>
 
       <!-- 注册按钮 -->
       <el-form-item>
         <el-button :loading="loading" type="success" class="w-full" @click="submit">
-          {{ t("login.register") }}
+          {{ t("login.register.submit") }}
         </el-button>
       </el-form-item>
     </el-form>
 
     <div flex-center gap-10px>
-      <el-text size="default">{{ t("login.haveAccount") }}</el-text>
+      <el-text size="default">{{ t("login.register.haveAccount") }}</el-text>
       <el-link type="primary" underline="never" @click="toLogin">{{ t("login.login") }}</el-link>
     </div>
   </div>
@@ -193,7 +201,7 @@ const rules = computed(() => ({
       min: 2,
       max: 20,
       pattern: /^[a-zA-Z][a-zA-Z0-9_-]*$/,
-      message: t("login.userNameRule"),
+      message: t("login.register.userNameRule"),
       trigger: "blur",
     },
   ],
@@ -304,7 +312,7 @@ const submit = useDebounceFn(async () => {
       password: encrypt.password(model.value.password, settingsStore.rsaPublicKey),
     };
     await AuthAPI.register(reqData);
-    ElMessage.success(t("login.registerSuccess"));
+    ElMessage.success(t("login.register.success"));
     toLogin();
   } catch {
     // 失败刷新图形验证码
