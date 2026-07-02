@@ -27,6 +27,9 @@ langSelect:
 settings:
   project: "项目配置"
   theme: "主题设置"
+  dark: "暗黑"
+  light: "明亮"
+  auto: "自动"
   interface: "界面设置"
   navigation: "导航设置"
   themeColor: "主题颜色"

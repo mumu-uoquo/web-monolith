@@ -31,6 +31,11 @@
       <div v-if="showTenantSwitcher" class="navbar-actions__item">
         <TenantSwitcher @change="handleTenantChange" />
       </div>
+
+      <!-- 角色切换 -->
+      <div v-if="roleList.length > 1" class="navbar-actions__item">
+        <RoleSelect />
+      </div>
     </template>
 
     <!-- 小屏：消息入口（仅显示图标和数量，点击跳转消息页） -->
@@ -76,13 +81,6 @@
         </template>
       </el-dropdown>
     </div>
-
-    <template v-if="isDesktop">
-      <!-- 角色切换 -->
-      <div v-if="roleList.length > 1" class="navbar-actions__item">
-        <RoleSelect />
-      </div>
-    </template>
 
     <!-- 系统设置 -->
     <div v-if="defaults.showSettings" class="navbar-actions__item" @click="handleSettingsClick">

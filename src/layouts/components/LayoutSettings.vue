@@ -13,13 +13,13 @@
         <div class="flex-center">
           <el-radio-group v-model="themeMode" class="theme-mode-group">
             <el-radio-button :value="ThemeMode.LIGHT">
-              {{ t("login.light") }}
+              {{ t("settings.light") }}
             </el-radio-button>
             <el-radio-button :value="ThemeMode.DARK">
-              {{ t("login.dark") }}
+              {{ t("settings.dark") }}
             </el-radio-button>
             <el-radio-button :value="ThemeMode.AUTO">
-              {{ t("login.auto") }}
+              {{ t("settings.auto") }}
             </el-radio-button>
           </el-radio-group>
         </div>
@@ -48,10 +48,12 @@
           <el-switch v-model="settingsStore.showAppLogo" />
         </div>
 
+        <!-- 调整到系统级配置，不开放给用户选择
         <div class="config-item flex-x-between">
           <span class="text-xs">{{ t("settings.showWatermark") }}</span>
           <el-switch v-model="settingsStore.showWatermark" />
         </div>
+        -->
 
         <div class="config-item flex-x-between">
           <span class="text-xs">{{ t("settings.pageSwitchingAnimation") }}</span>
@@ -139,6 +141,7 @@
     <!-- 操作按钮区域 - 固定到底部 -->
     <template #footer>
       <div class="action-buttons">
+        <!-- 
         <el-tooltip
           content="复制配置将生成当前设置的代码，覆盖到 `src/settings.ts` 下的 `defaultSettings` 变量"
           placement="top"
@@ -153,6 +156,7 @@
             {{ copyLoading ? "复制中..." : t("settings.copyConfig") }}
           </el-button>
         </el-tooltip>
+        -->
         <el-tooltip content="重置将恢复所有设置为默认值" placement="top">
           <el-button
             type="warning"
