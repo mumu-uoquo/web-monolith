@@ -257,7 +257,7 @@ onUnmounted(() => {
   align-items: center;
   justify-content: center;
   width: 100%;
-  height: 306px;
+  height: 278px;
   overflow: hidden;
   background: var(--el-fill-color-blank);
   border: 1px solid var(--el-border-color-light);
@@ -302,10 +302,13 @@ onUnmounted(() => {
   }
 }
 
-/* oauth 模式：canvas 二维码 */
+/* oauth 模式：canvas 二维码，限制在容器内不撑开布局 */
 .qr-canvas {
   display: block;
+  max-width: 100%;
+  max-height: 100%;
   border-radius: 6px;
+  object-fit: contain;
 }
 
 .qr-overlay {
