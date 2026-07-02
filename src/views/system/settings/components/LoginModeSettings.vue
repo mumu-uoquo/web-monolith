@@ -8,7 +8,7 @@
           class="login-mode-group"
           @change="handleNormalModesChange"
         >
-          <el-checkbox value="password">账号密码</el-checkbox>
+          <el-checkbox value="account">账号密码</el-checkbox>
           <el-checkbox value="sms">手机短信</el-checkbox>
           <el-checkbox value="wechat">
             微信扫码
@@ -189,7 +189,7 @@ const CONFIG_MAP: Record<
     toValue: (v: any) => string;
   }
 > = {
-  "login.password.enabled": {
+  "login.account.enabled": {
     field: "passwordEnable",
     fromValue: (v) => v !== "false",
     toValue: (v) => String(v),
@@ -325,7 +325,7 @@ const wecomCallbackPlaceholder = computed(() =>
 
 function buildNormalModes(): string[] {
   const modes: string[] = [];
-  if (form.passwordEnable) modes.push("password");
+  if (form.passwordEnable) modes.push("account");
   if (form.smsEnable) modes.push("sms");
   if (form.wechatEnable) modes.push("wechat");
   if (form.wecomEnable) modes.push("wecom");
@@ -337,7 +337,7 @@ const normalModes = ref<string[]>(buildNormalModes());
 watch(
   normalModes,
   (val) => {
-    form.passwordEnable = val.includes("password");
+    form.passwordEnable = val.includes("account");
     form.smsEnable = val.includes("sms");
     form.wechatEnable = val.includes("wechat");
     form.wecomEnable = val.includes("wecom");

@@ -41,7 +41,7 @@
 
         <transition name="fade-slide" mode="out-in">
           <!-- 账号密码登录 -->
-          <div v-if="component === 'password'" key="password" class="login-card__form">
+          <div v-if="component === 'account'" key="account" class="login-card__form">
             <AccountForm
               @on-submit="handleLoginSuccess"
               @need-mfa="handleNeedMfa"
@@ -114,6 +114,15 @@
           </div>
         </transition>
 
+        <!-- 运维登录覆盖层（连续点击 title 10 次触发） -->
+        <Transition name="fade-slide">
+          <OpsForm
+            v-if="opsVisible"
+            @on-submit="handleLoginSuccess"
+            @on-cancel="opsVisible = false"
+          />
+        </Transition>
+
         <!-- 其他登录方式（多于一种登录方式时才显示，且不在 register/resetPwd/bind 时显示） -->
         <div
           v-if="showSocialBar && !['register', 'resetPwd', 'bind'].includes(component)"
@@ -132,7 +141,7 @@
                   :class="{ active: activeLoginMode === mode }"
                   @click="switchLoginMode(mode)"
                 >
-                  <span v-if="mode === 'password'" class="i-svg:site-password" />
+                  <span v-if="mode === 'account'" class="i-svg:site-password" />
                   <span v-else-if="mode === 'wechat'" class="i-svg:site-wechat" />
                   <span v-else-if="mode === 'wecom'" class="i-svg:site-wecom" />
                   <el-icon v-else-if="mode === 'sms'"><Iphone /></el-icon>
@@ -149,15 +158,6 @@
             <a href="http://beian.miit.gov.cn/" target="_blank">皖ICP备00064962号</a>
           </el-text>
         </footer>
-
-        <!-- 运维登录覆盖层（连续点击 title 10 次触发） -->
-        <Transition name="fade-slide">
-          <OpsForm
-            v-if="opsVisible"
-            @on-submit="handleLoginSuccess"
-            @on-cancel="opsVisible = false"
-          />
-        </Transition>
       </section>
     </div>
   </div>
@@ -250,7 +250,7 @@ function handleTitleClick() {
 
 /* ***************************** 视图切换 ********************************* */
 type LayoutMap =
-  | "password"
+  | "account"
   | "register"
   | "resetPwd"
   | "mfa"
@@ -259,13 +259,13 @@ type LayoutMap =
   | "wecom"
   | "emerg"
   | "bind";
-const component = ref<LayoutMap>("password");
+const component = ref<LayoutMap>("account");
 const mfaTempToken = ref<string>(""); // MFA 临时 token（通用）
 const bindCredential = ref<string>(""); // 第三方绑定用临时 token（通用）
 const bindProvider = ref<string>("wechat"); // 第三方凭证类型，用于绑定表单图标展示
 
 /** 当前激活的登录方式（用于 social bar 图标高亮，MFA/bind 时保持原方式高亮） */
-const activeLoginMode = ref<LoginMode>("password");
+const activeLoginMode = ref<LoginMode>("account");
 
 /** 已启用的登录方式列表 */
 const enabledLoginModes = computed(() => settingsStore.enabledLoginModes);
@@ -276,7 +276,7 @@ const showSocialBar = computed(() => enabledLoginModes.value.length > 1);
 /** 登录方式对应的显示文字 */
 function loginModeLabel(mode: LoginMode): string {
   const map: Record<LoginMode, string> = {
-    password: t("login.accountLogin"),
+    account: t("login.accountLogin"),
     sms: t("login.phoneLogin"),
     wechat: t("login.wechatLogin"),
     wecom: t("login.wecomLogin"),
@@ -287,7 +287,7 @@ function loginModeLabel(mode: LoginMode): string {
 
 /** 登录方式 → component key */
 const LOGIN_MODE_COMPONENT: Record<LoginMode, LayoutMap> = {
-  password: "password",
+  account: "account",
   sms: "phone",
   wechat: "wechat",
   wecom: "wecom",
@@ -343,7 +343,7 @@ onMounted(async () => {
   // 加载系统公共配置（AES key、RSA 公钥、时间差、登录方式等）
   await settingsStore.loadServerSettings();
   // 根据后端配置决定默认登录方式
-  const firstMode = settingsStore.enabledLoginModes[0] ?? "password";
+  const firstMode = settingsStore.enabledLoginModes[0] ?? "account";
   activeLoginMode.value = firstMode;
   component.value = LOGIN_MODE_COMPONENT[firstMode];
 });
@@ -506,9 +506,10 @@ onMounted(async () => {
 }
 
 .login-form__title {
-  margin: 0 0 4px;
+  margin: 0 0 16px;
   font-size: 1rem;
   font-weight: 600;
+  line-height: 1.4;
 }
 
 .login-card__form {

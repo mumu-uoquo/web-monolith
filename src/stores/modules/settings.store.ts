@@ -18,7 +18,7 @@ import { decrypt } from "@/utils/crypto";
 // ─────────────────────────────────────────────
 
 /** 支持的登录方式 key */
-export type LoginMode = "password" | "sms" | "wechat" | "wecom" | "emerg";
+export type LoginMode = "account" | "sms" | "wechat" | "wecom" | "emerg";
 
 interface PublicConfig {
   /** AES 密钥：security.aes.key */
@@ -40,7 +40,7 @@ const _publicConfig = ref<PublicConfig>({
   rsaPublicKey: "",
   serverTimeDiff: 0,
   watermarkEnable: false,
-  enabledLoginModes: ["password"],
+  enabledLoginModes: ["account"],
   registerEnabled: false,
 });
 
@@ -155,7 +155,7 @@ export const useSettingsStore = defineStore("setting", () => {
       rsaPublicKey: "",
       serverTimeDiff: 0,
       watermarkEnable: false,
-      enabledLoginModes: ["password"],
+      enabledLoginModes: ["account"],
       registerEnabled: false,
     };
 
@@ -201,7 +201,7 @@ export const useSettingsStore = defineStore("setting", () => {
 
       // 登录方式：按 password / sms / wechat / wecom / emerg 顺序采集已启用的项
       const LOGIN_MODE_KEYS: Array<{ code: string; mode: LoginMode }> = [
-        { code: "login.password.enabled", mode: "password" },
+        { code: "login.account.enabled", mode: "account" },
         { code: "login.sms.enabled", mode: "sms" },
         { code: "login.wechat.enabled", mode: "wechat" },
         { code: "login.wecom.enabled", mode: "wecom" },
@@ -211,7 +211,7 @@ export const useSettingsStore = defineStore("setting", () => {
         ({ mode }) => mode
       );
       // 至少保留账号密码，防止后端未配置时全空
-      _publicConfig.value.enabledLoginModes = modes.length > 0 ? modes : ["password"];
+      _publicConfig.value.enabledLoginModes = modes.length > 0 ? modes : ["account"];
 
       // 注册开关：sys.register.enabled，未配置时默认关闭
       _publicConfig.value.registerEnabled = get("sys.register.enabled") === "true";

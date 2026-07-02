@@ -135,7 +135,7 @@ const { t } = useI18n();
 const settingsStore = useSettingsStore();
 
 const emit = defineEmits(["update:modelValue"]);
-const toLogin = () => emit("update:modelValue", "login");
+const toLogin = () => emit("update:modelValue", "account");
 
 // 短信验证码场景，需与获取图形验证码时保持一致
 const SMS_SCENE = "reset_password";

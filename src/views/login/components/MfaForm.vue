@@ -1,6 +1,6 @@
 <template>
   <div>
-    <h3 text-center m-0 mb-20px>MFA 验证</h3>
+    <h3 class="login-form__title text-center">MFA 验证</h3>
     <el-form ref="mfaFormRef" :model="formData" :rules="rules" size="large">
       <el-form-item prop="totpCode">
         <el-input
@@ -95,6 +95,6 @@ function toLogin() {
   totpCode.value = "";
   errorMsg.value = "";
   loading.value = false;
-  emits("update:modelValue", props.returnTo ?? "password");
+  emits("update:modelValue", props.returnTo ?? "account");
 }
 </script>

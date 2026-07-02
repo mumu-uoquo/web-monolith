@@ -1,5 +1,5 @@
 <template>
-  <div class="wechat-qr">
+  <div class="wechat-qr" :class="{ 'wechat-qr--wxjs': renderType === 'wxjs' }">
     <h3 v-if="renderType === 'oauth'" class="login-form__title text-center">
       {{ t("login.wechatLogin") }}
     </h3>
@@ -28,13 +28,6 @@
           </div>
         </Transition>
       </div>
-    </div>
-
-    <!-- 返回账号登录 -->
-    <div flex-center mt-8px>
-      <el-link type="primary" underline="never" @click="$emit('update:modelValue', 'login')">
-        {{ t("login.backToAccount") }}
-      </el-link>
     </div>
   </div>
 </template>
@@ -153,7 +146,7 @@ async function renderOAuthQrCode(cfg: CredentialConfigDto) {
   if (!canvasRef.value) return;
   const isDark = document.documentElement.classList.contains("dark");
   await QRCode.toCanvas(canvasRef.value, buildOAuthUrl(cfg), {
-    width: 160,
+    width: 260,
     margin: 2,
     color: {
       dark: isDark ? "#ffffff" : "#000000",
@@ -257,13 +250,14 @@ onUnmounted(() => {
   align-items: center;
 }
 
+/* oauth 模式有 title，qr-box 稍小 */
 .qr-box {
   position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
   width: 100%;
-  height: 190px;
+  height: 306px;
   overflow: hidden;
   background: var(--el-fill-color-blank);
   border: 1px solid var(--el-border-color-light);
@@ -275,6 +269,11 @@ onUnmounted(() => {
   }
 }
 
+/* wxjs 模式：无 title，qr-box 扩大 */
+.wechat-qr--wxjs .qr-box {
+  height: 350px;
+}
+
 /* wxjs 模式：iframe 容器 */
 .qr-frame {
   --wx-qr-offset: 20px;
@@ -284,14 +283,22 @@ onUnmounted(() => {
   align-items: flex-start;
   justify-content: center;
   width: 100%;
-  height: 250px;
+  height: 306px;
   overflow: hidden;
 
   :deep(iframe) {
     display: block;
     width: 100%;
-    height: 250px !important;
+    height: 306px !important;
     margin-top: var(--wx-qr-offset);
+  }
+}
+
+.wechat-qr--wxjs .qr-frame {
+  height: 350px;
+
+  :deep(iframe) {
+    height: 350px !important;
   }
 }
 
