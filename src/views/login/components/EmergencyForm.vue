@@ -7,7 +7,7 @@
     </div>
 
     <el-form-item prop="account">
-      <el-input v-model.trim="formData.account" :placeholder="t('login.username')" clearable>
+      <el-input v-model.trim="formData.account" :placeholder="t('login.emerg.username')" clearable>
         <template #prefix>
           <el-icon><User /></el-icon>
         </template>

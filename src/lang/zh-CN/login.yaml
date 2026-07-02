@@ -67,6 +67,7 @@ bind:
 # ── EmergencyForm ─────────────────────────────────
 emerg:
   alert: "仅通过账号和 MFA 动态口令校验，连续 5 次出错将封禁 24 小时，请谨慎使用"
+  username: "用户名"
   totpCode: "MFA 动态口令"
   message:
     totpCode:
