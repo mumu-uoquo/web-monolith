@@ -34,10 +34,17 @@ message:
     required: "Please read and agree to the User Agreement"
   newPassword:
     required: "Please enter a new password"
+  totpCode:
+    required: "Please enter the dynamic code"
+    invalid: "Please enter a 6-digit numeric code"
 otherLoginMethods: "Other login methods"
+accountLogin: "Account Login"
 phoneLogin: "Phone Login"
 wechatLogin: "WeChat QR Login"
 wecomLogin: "WeCom QR Login"
+emergencyLogin: "Emergency Login"
+emergencyAlert: "Only account and MFA code are verified. 5 consecutive failures will ban for 24 hours. Use with caution."
+totpCode: "MFA Dynamic Code"
 phone: "Phone Number"
 smsCode: "SMS Code"
 sendCode: "Send Code"

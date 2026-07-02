@@ -17,6 +17,9 @@ import { decrypt } from "@/utils/crypto";
 // 公共系统配置（内存中，每次 load() 重新获取）
 // ─────────────────────────────────────────────
 
+/** 支持的登录方式 key */
+export type LoginMode = "password" | "sms" | "wechat" | "wecom" | "emerg";
+
 interface PublicConfig {
   /** AES 密钥：security.aes.key */
   aesKey: string;
@@ -26,6 +29,8 @@ interface PublicConfig {
   serverTimeDiff: number;
   /** 是否强制开启水印：sys.watermark.enabled */
   watermarkEnable: boolean;
+  /** 已启用的登录方式（顺序与后端配置一致） */
+  enabledLoginModes: LoginMode[];
 }
 
 const _publicConfig = ref<PublicConfig>({
@@ -33,6 +38,7 @@ const _publicConfig = ref<PublicConfig>({
   rsaPublicKey: "",
   serverTimeDiff: 0,
   watermarkEnable: false,
+  enabledLoginModes: ["password"],
 });
 
 export const useSettingsStore = defineStore("setting", () => {
@@ -146,6 +152,7 @@ export const useSettingsStore = defineStore("setting", () => {
       rsaPublicKey: "",
       serverTimeDiff: 0,
       watermarkEnable: false,
+      enabledLoginModes: ["password"],
     };
 
     try {
@@ -187,6 +194,20 @@ export const useSettingsStore = defineStore("setting", () => {
           _publicConfig.value.serverTimeDiff = serverTs - localMid;
         }
       }
+
+      // 登录方式：按 password / sms / wechat / wecom / emerg 顺序采集已启用的项
+      const LOGIN_MODE_KEYS: Array<{ code: string; mode: LoginMode }> = [
+        { code: "login.password.enabled", mode: "password" },
+        { code: "login.sms.enabled", mode: "sms" },
+        { code: "login.wechat.enabled", mode: "wechat" },
+        { code: "login.wecom.enabled", mode: "wecom" },
+        { code: "login.emerg.enabled", mode: "emerg" },
+      ];
+      const modes: LoginMode[] = LOGIN_MODE_KEYS.filter(({ code }) => get(code) !== "false").map(
+        ({ mode }) => mode
+      );
+      // 至少保留账号密码，防止后端未配置时全空
+      _publicConfig.value.enabledLoginModes = modes.length > 0 ? modes : ["password"];
     } catch {
       // 加载失败不影响正常使用，保持默认空值
     }
@@ -207,6 +228,9 @@ export const useSettingsStore = defineStore("setting", () => {
    */
   const serverTimeDiff = computed(() => _publicConfig.value.serverTimeDiff);
 
+  /** 已启用的登录方式列表（由后端 login.**.enabled 配置决定） */
+  const enabledLoginModes = computed(() => _publicConfig.value.enabledLoginModes);
+
   return {
     settingsVisible,
     showTagsView,
@@ -226,5 +250,6 @@ export const useSettingsStore = defineStore("setting", () => {
     aesKey,
     rsaPublicKey,
     serverTimeDiff,
+    enabledLoginModes,
   };
 });

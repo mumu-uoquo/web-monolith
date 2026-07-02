@@ -62,6 +62,17 @@ const AuthAPI = {
   },
 
   /**
+   * 仅需账号和MFA验证码即可登录。连续5次出错该账号24小时内不能使用紧急登录功能。
+   * @param data 紧急登录参数
+   */
+  emergencyLogin(data: EmergencyLoginParam, config?: AxiosRequestConfig) {
+    return http.request<UserAuthDto>("post", `${USER_BASE_URL}/v1/auth/emergency/login`, {
+      data,
+      ...config,
+    });
+  },
+
+  /**
    * scene 需与后续流程一致：login=密码出错触发, register=用户注册, sms_login=短信登录发码前人机验证（非 login 场景的验证码 key 会按 scene 隔离）
    * @param data 获取图形验证码
    */
@@ -248,6 +259,8 @@ export interface CredentialConfigDto {
   appid?: string;
   /** 授权回调地址 */
   redirectUri?: string;
+  /** 渲染方式：wxjs=集成微信官方 JS（WxLogin / 企微 JS-SDK），oauth=自行拼接 OAuth2 URL 并展示二维码 */
+  renderType?: "wxjs" | "oauth";
   /** 场景（wechat/wecom） */
   scene?: string;
   /** 本次授权的 state（用于回调与状态轮询） */
@@ -298,6 +311,22 @@ export interface CredentialStatusParam {
   scene: string;
   /** 本次授权的 state（用于回调与状态轮询） */
   state: string;
+}
+
+/**
+ * 紧急登录参数
+ */
+export interface EmergencyLoginParam {
+  /** 登录账号 */
+  account: string;
+  /** 发起方版本 */
+  appVersion?: string;
+  /** 是否记住 */
+  rememberMe?: boolean;
+  /** MFA动态验证码 */
+  totpCode: string;
+  /** UA（主要用于移动端登录） */
+  userAgent?: string;
 }
 
 /**

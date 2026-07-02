@@ -34,10 +34,17 @@ message:
     required: "请阅读并同意用户协议"
   newPassword:
     required: "请输入新密码"
+  totpCode:
+    required: "请输入动态验证码"
+    invalid: "请输入 6 位数字验证码"
 otherLoginMethods: "其他登录方式"
+accountLogin: "账号密码登录"
 phoneLogin: "手机号登录"
 wechatLogin: "微信扫码登录"
 wecomLogin: "企业微信扫码登录"
+emergencyLogin: "紧急登录"
+emergencyAlert: "仅通过账号和 MFA 验证码校验，连续 5 次出错将封禁 24 小时，请谨慎使用"
+totpCode: "MFA 动态验证码"
 phone: "手机号"
 smsCode: "短信验证码"
 sendCode: "获取验证码"

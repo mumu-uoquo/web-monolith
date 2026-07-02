@@ -87,13 +87,6 @@
         {{ t("login.login") }}
       </el-button>
     </el-form-item>
-
-    <!-- 返回账号登录 -->
-    <div flex-center>
-      <el-link type="primary" underline="never" @click="$emit('update:modelValue', 'login')">
-        {{ t("login.backToAccount") }}
-      </el-link>
-    </div>
   </el-form>
 </template>
 

@@ -20,7 +20,7 @@
 
       <section class="login-card">
         <div class="login-card__brand">
-          <div class="login-card__logo-wrap">
+          <div class="login-card__logo-wrap" @click="handleTitleClick">
             <el-image :src="logo" class="login-card__logo" />
           </div>
           <div class="login-card__meta">
@@ -51,7 +51,11 @@
 
           <!-- MFA 双因子认证 -->
           <div v-else-if="component === 'mfa'" key="mfa" class="login-card__form">
-            <MfaForm :temp-token="mfaTempToken" @mfa-success="handleLoginSuccess" />
+            <MfaForm
+              :temp-token="mfaTempToken"
+              @mfa-success="handleLoginSuccess"
+              @update:model-value="component = $event"
+            />
           </div>
 
           <!-- 微信扫码 -->
@@ -83,6 +87,11 @@
             />
           </div>
 
+          <!-- 紧急登录 -->
+          <div v-else-if="component === 'emerg'" key="emerg" class="login-card__form">
+            <EmergencyForm @on-submit="handleLoginSuccess" />
+          </div>
+
           <!-- 第三方登录首次绑定账号 -->
           <div v-else-if="component === 'bind'" key="bind" class="login-card__form">
             <BindForm
@@ -104,9 +113,9 @@
           </div>
         </transition>
 
-        <!-- 第三方登录（仅在 login / phone / wechat 模式下显示） -->
+        <!-- 其他登录方式（多于一种登录方式时才显示，且不在 register/resetPwd/bind 时显示） -->
         <div
-          v-if="['login', 'phone', 'mfa', 'wechat', 'wecom', 'bind'].includes(component)"
+          v-if="showSocialBar && !['register', 'resetPwd', 'bind'].includes(component)"
           class="login-form__social"
         >
           <div class="social-divider">
@@ -115,42 +124,21 @@
             <span class="social-divider__line" />
           </div>
           <div class="social-icons">
-            <el-tooltip :content="t('login.wechatLogin')" placement="top">
-              <span
-                class="social-icons__item"
-                :class="{ active: component === 'wechat' }"
-                @click="component = component === 'wechat' ? 'login' : 'wechat'"
-              >
-                <span class="i-svg:site-wechat" />
-              </span>
-            </el-tooltip>
-            <el-tooltip :content="t('login.wecomLogin')" placement="top">
-              <span
-                class="social-icons__item"
-                :class="{ active: component === 'wecom' }"
-                @click="component = component === 'wecom' ? 'login' : 'wecom'"
-              >
-                <el-icon><ChatDotSquare /></el-icon>
-              </span>
-            </el-tooltip>
-            <el-tooltip :content="t('login.phoneLogin')" placement="top">
-              <span
-                class="social-icons__item"
-                :class="{ active: component === 'phone' }"
-                @click="component = component === 'phone' ? 'login' : 'phone'"
-              >
-                <el-icon><Iphone /></el-icon>
-              </span>
-            </el-tooltip>
-            <el-tooltip content="QQ" placement="top">
-              <span class="social-icons__item"><span class="i-svg:site-qq" /></span>
-            </el-tooltip>
-            <el-tooltip content="GitHub" placement="top">
-              <span class="social-icons__item"><span class="i-svg:site-github" /></span>
-            </el-tooltip>
-            <el-tooltip content="Gitee" placement="top">
-              <span class="social-icons__item"><span class="i-svg:site-gitee" /></span>
-            </el-tooltip>
+            <template v-for="mode in enabledLoginModes" :key="mode">
+              <el-tooltip :content="loginModeLabel(mode)" placement="top">
+                <span
+                  class="social-icons__item"
+                  :class="{ active: activeLoginMode === mode }"
+                  @click="switchLoginMode(mode)"
+                >
+                  <span v-if="mode === 'password'" class="i-svg:site-password" />
+                  <span v-else-if="mode === 'wechat'" class="i-svg:site-wechat" />
+                  <span v-else-if="mode === 'wecom'" class="i-svg:site-wecom" />
+                  <el-icon v-else-if="mode === 'sms'"><Iphone /></el-icon>
+                  <span v-else-if="mode === 'emerg'" class="i-svg:site-mfa" />
+                </span>
+              </el-tooltip>
+            </template>
           </div>
         </div>
 
@@ -160,6 +148,15 @@
             <a href="http://beian.miit.gov.cn/" target="_blank">皖ICP备00064962号</a>
           </el-text>
         </footer>
+
+        <!-- 运维登录覆盖层（连续点击 title 10 次触发） -->
+        <Transition name="fade-slide">
+          <OpsForm
+            v-if="opsVisible"
+            @on-submit="handleLoginSuccess"
+            @on-cancel="opsVisible = false"
+          />
+        </Transition>
       </section>
     </div>
   </div>
@@ -168,10 +165,12 @@
 <script setup lang="ts">
 import router from "@/router";
 import { useSettingsStore, useUserStore, useDictStore } from "@/stores";
+import type { LoginMode } from "@/stores/modules/settings.store";
 import { AuthStorage } from "@/utils/auth";
 import { connectSse } from "@/composables/sse";
 import logo from "@/assets/images/logo.png";
 import { appConfig } from "@/settings";
+import { Iphone } from "@element-plus/icons-vue";
 
 import ThemeSwitch from "@/components/ThemeSwitch/index.vue";
 import LangSelect from "@/components/LangSelect/index.vue";
@@ -183,6 +182,8 @@ import MfaForm from "./components/MfaForm.vue";
 import PhoneForm from "./components/PhoneForm.vue";
 import WechatQrCode from "./components/WechatQrCode.vue";
 import WecomQrCode from "./components/WecomQrCode.vue";
+import EmergencyForm from "./components/EmergencyForm.vue";
+import OpsForm from "./components/OpsForm.vue";
 import BindForm from "./components/BindForm.vue";
 
 /* ***************************** 参数定义 ********************************* */
@@ -227,12 +228,76 @@ function parseRedirect(): { path: string; queryParams: Record<string, string> } 
   return { path, queryParams };
 }
 
+/* ***************************** 运维登录（隐藏入口） ********************************* */
+const opsVisible = ref(false);
+let titleClickCount = 0;
+let titleClickTimer: ReturnType<typeof setTimeout> | null = null;
+
+/** 连续点击 title 10 次（2 秒内）触发运维登录 */
+function handleTitleClick() {
+  titleClickCount++;
+  if (titleClickTimer) clearTimeout(titleClickTimer);
+  titleClickTimer = setTimeout(() => {
+    titleClickCount = 0;
+  }, 2000);
+  if (titleClickCount >= 10) {
+    titleClickCount = 0;
+    if (titleClickTimer) clearTimeout(titleClickTimer);
+    opsVisible.value = true;
+  }
+}
+
 /* ***************************** 视图切换 ********************************* */
-type LayoutMap = "login" | "register" | "resetPwd" | "mfa" | "phone" | "wechat" | "wecom" | "bind";
+type LayoutMap =
+  | "login"
+  | "register"
+  | "resetPwd"
+  | "mfa"
+  | "phone"
+  | "wechat"
+  | "wecom"
+  | "emerg"
+  | "bind";
 const component = ref<LayoutMap>("login");
 const mfaTempToken = ref<string>(""); // MFA 临时 token（通用）
 const bindCredential = ref<string>(""); // 第三方绑定用临时 token（通用）
 const bindProvider = ref<string>("wechat"); // 第三方凭证类型，用于绑定表单图标展示
+
+/** 当前激活的登录方式（用于 social bar 图标高亮，MFA/bind 时保持原方式高亮） */
+const activeLoginMode = ref<LoginMode>("password");
+
+/** 已启用的登录方式列表 */
+const enabledLoginModes = computed(() => settingsStore.enabledLoginModes);
+
+/** 仅当启用了多于一种登录方式时才显示 social bar */
+const showSocialBar = computed(() => enabledLoginModes.value.length > 1);
+
+/** 登录方式对应的显示文字 */
+function loginModeLabel(mode: LoginMode): string {
+  const map: Record<LoginMode, string> = {
+    password: t("login.accountLogin"),
+    sms: t("login.phoneLogin"),
+    wechat: t("login.wechatLogin"),
+    wecom: t("login.wecomLogin"),
+    emerg: t("login.emergencyLogin"),
+  };
+  return map[mode];
+}
+
+/** 登录方式 → component key */
+const LOGIN_MODE_COMPONENT: Record<LoginMode, LayoutMap> = {
+  password: "login",
+  sms: "phone",
+  wechat: "wechat",
+  wecom: "wecom",
+  emerg: "emerg",
+};
+
+/** 点击 social bar 图标切换登录方式（每次都直接切换，不再切回） */
+function switchLoginMode(mode: LoginMode) {
+  activeLoginMode.value = mode;
+  component.value = LOGIN_MODE_COMPONENT[mode];
+}
 
 function showForm(type: LayoutMap, payload?: string) {
   if (type === "mfa" && payload) {
@@ -243,12 +308,7 @@ function showForm(type: LayoutMap, payload?: string) {
 
 /**
  * 需要 MFA 二次认证（通用）
- *
- * 任意登录方式（账号密码 / 手机号 / 第三方凭证等）在需要二次认证时均可触发：
- * 当登录接口返回 userId 为空或 totpStatus 为 enabled 时，
- * 将返回的 accessToken 作为临时 token 传入，切换到 MFA 表单。
- *
- * @param tempToken 登录接口返回的临时 token（accessToken）
+ * 切换到 MFA 表单，但保留 activeLoginMode 不变（图标高亮不丢失）
  */
 function handleNeedMfa(tempToken: string) {
   mfaTempToken.value = tempToken;
@@ -257,12 +317,6 @@ function handleNeedMfa(tempToken: string) {
 
 /**
  * 需要绑定账号（通用）
- *
- * 第三方凭证登录（微信 / 企微等）在系统中未找到关联账号时触发，
- * 携带绑定用临时 token 切换到通用绑定表单。
- *
- * @param tempToken 第三方凭证登录返回的临时 token
- * @param provider 第三方凭证类型（wechat / wecom 等），用于展示对应图标
  */
 function handleNeedBind(tempToken: string, provider = "wechat") {
   bindCredential.value = tempToken;
@@ -281,12 +335,16 @@ defineOptions({
 /**
  * 页面加载时
  */
-onMounted(() => {
+onMounted(async () => {
   AuthStorage.loadDeviceId();
   // 进入登录页面时，默认清除
   userStore.resetAllState();
-  // 加载系统公共配置（AES key、RSA 公钥、时间差等）
-  settingsStore.loadServerSettings();
+  // 加载系统公共配置（AES key、RSA 公钥、时间差、登录方式等）
+  await settingsStore.loadServerSettings();
+  // 根据后端配置决定默认登录方式
+  const firstMode = settingsStore.enabledLoginModes[0] ?? "password";
+  activeLoginMode.value = firstMode;
+  component.value = LOGIN_MODE_COMPONENT[firstMode];
 });
 </script>
 
@@ -414,6 +472,8 @@ onMounted(() => {
   justify-content: center;
   width: 46px;
   height: 46px;
+  cursor: default;
+  user-select: none;
   background: var(--el-color-primary-light-9);
   border-radius: 14px;
 }
