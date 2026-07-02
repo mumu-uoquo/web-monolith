@@ -59,7 +59,11 @@
 
     <!-- 返回 -->
     <div flex-center>
-      <el-link type="primary" underline="never" @click="$emit('update:modelValue', 'login')">
+      <el-link
+        type="primary"
+        underline="never"
+        @click="$emit('update:modelValue', props.returnTo ?? 'account')"
+      >
         {{ t("login.backToAccount") }}
       </el-link>
     </div>
@@ -82,6 +86,8 @@ const props = defineProps<{
   tempToken: string;
   /** 第三方凭证类型（wechat / wecom 等），用于展示对应图标 */
   provider?: string;
+  /** 返回的目标面板（默认 account） */
+  returnTo?: string;
 }>();
 
 const emits = defineEmits<{
@@ -105,7 +111,7 @@ const settingsStore = useSettingsStore();
 /* ------------------------------------------------------------------ */
 const PROVIDER_META: Record<string, { icon: string; color: string }> = {
   wechat: { icon: "i-svg:site-wechat", color: "#07c160" },
-  wecom: { icon: "i-svg:site-wechat", color: "#2f90e8" },
+  wecom: { icon: "i-svg:site-wecom", color: "#ffffff" },
   qq: { icon: "i-svg:site-qq", color: "#12b7f5" },
   github: { icon: "i-svg:site-github", color: "#24292e" },
   gitee: { icon: "i-svg:site-gitee", color: "#c71d23" },

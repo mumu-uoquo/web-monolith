@@ -58,11 +58,13 @@
             :src="userInfo.avatar ?? defaultAvatar"
             class="user-profile__avatar"
           />
-          <span class="user-profile__name">{{ userInfo.userName }}</span>
+          <span class="user-profile__name">{{ userInfo.realName }}</span>
         </div>
         <template #dropdown>
           <el-dropdown-menu>
-            <el-dropdown-item disabled>{{ userInfo.userName }}</el-dropdown-item>
+            <el-dropdown-item disabled>
+              {{ userInfo.userName }}（{{ userInfo.phone }}）
+            </el-dropdown-item>
 
             <el-dropdown-item divided @click="handleProfileClick">
               {{ t("navbar.profile") }}

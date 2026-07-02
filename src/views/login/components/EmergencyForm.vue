@@ -2,7 +2,7 @@
   <el-form ref="formRef" :model="formData" :rules="rules" size="large">
     <h3 class="login-form__title text-center">{{ t("login.emergencyLogin") }}</h3>
 
-    <div style="margin-bottom: 18px">
+    <div style="margin-bottom: 16px">
       <el-alert type="warning" show-icon :closable="false" :title="t('login.emergencyAlert')" />
     </div>
 

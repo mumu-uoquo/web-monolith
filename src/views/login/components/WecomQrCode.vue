@@ -56,7 +56,7 @@ const userStore = useUserStore();
 
 // 凭证类型 / 场景
 const SCENE = "wecom";
-// 二维码本地有效期（秒），超时后重新拉取配置生成新面板/码
+// 二维码本地有效期（秒），超时后重新拉取配置生成新码
 const QR_TTL = 300;
 // 企业微信登录面板挂载点 id（仅 wxjs 模式使用）
 const CONTAINER_ID = "ww-login-container";
@@ -325,8 +325,8 @@ onUnmounted(() => {
   display: block;
   max-width: 100%;
   max-height: 100%;
-  border-radius: 6px;
   object-fit: contain;
+  border-radius: 6px;
 }
 
 .qr-overlay {

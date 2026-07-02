@@ -19,7 +19,7 @@
           <el-icon class="is-loading" size="32"><Loading /></el-icon>
         </div>
 
-        <!-- 过期遮罩 -->
+        <!-- 过期/错误遮罩 -->
         <Transition name="fade">
           <div v-if="isExpired" class="qr-overlay qr-expired-mask" @click="refresh">
             <el-icon size="28"><RefreshRight /></el-icon>
@@ -129,6 +129,8 @@ async function renderWxjsQrCode(cfg: CredentialConfigDto) {
  * https://open.weixin.qq.com/connect/oauth2/authorize
  *   ?appid=APPID&redirect_uri=REDIRECT_URI&response_type=code
  *   &scope=snsapi_base&state=STATE#wechat_redirect
+ *
+ * 参考：https://developers.weixin.qq.com/doc/service/guide/h5/auth.html
  */
 function buildOAuthUrl(cfg: CredentialConfigDto): string {
   const params = new URLSearchParams({
@@ -250,7 +252,7 @@ onUnmounted(() => {
   align-items: center;
 }
 
-/* oauth 模式有 title，qr-box 稍小 */
+/* oauth 模式有 title */
 .qr-box {
   position: relative;
   display: flex;
@@ -276,30 +278,21 @@ onUnmounted(() => {
 
 /* wxjs 模式：iframe 容器 */
 .qr-frame {
-  --wx-qr-offset: 20px;
-
-  position: relative;
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: center;
   width: 100%;
   height: 306px;
-  overflow: hidden;
 
   :deep(iframe) {
     display: block;
-    width: 100%;
-    height: 306px !important;
-    margin-top: var(--wx-qr-offset);
+    margin: 0 auto;
+    border: 0;
   }
 }
 
 .wechat-qr--wxjs .qr-frame {
   height: 350px;
-
-  :deep(iframe) {
-    height: 350px !important;
-  }
 }
 
 /* oauth 模式：canvas 二维码，限制在容器内不撑开布局 */
@@ -307,8 +300,8 @@ onUnmounted(() => {
   display: block;
   max-width: 100%;
   max-height: 100%;
-  border-radius: 6px;
   object-fit: contain;
+  border-radius: 6px;
 }
 
 .qr-overlay {

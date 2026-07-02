@@ -98,6 +98,7 @@
             <BindForm
               :temp-token="bindCredential"
               :provider="bindProvider"
+              :return-to="LOGIN_MODE_COMPONENT[activeLoginMode]"
               @update:model-value="component = $event"
               @on-submit="handleLoginSuccess"
               @need-mfa="handleNeedMfa"

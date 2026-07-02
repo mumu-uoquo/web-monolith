@@ -207,7 +207,7 @@ export const useSettingsStore = defineStore("setting", () => {
         { code: "login.wecom.enabled", mode: "wecom" },
         { code: "login.emerg.enabled", mode: "emerg" },
       ];
-      const modes: LoginMode[] = LOGIN_MODE_KEYS.filter(({ code }) => get(code) !== "false").map(
+      const modes: LoginMode[] = LOGIN_MODE_KEYS.filter(({ code }) => get(code) === "true").map(
         ({ mode }) => mode
       );
       // 至少保留账号密码，防止后端未配置时全空

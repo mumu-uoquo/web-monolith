@@ -111,7 +111,8 @@ const rules = {
 };
 
 // ── 二维码弹窗 ──────────────────────────────────────
-const QR_TTL = 30;
+// 二维码本地有效期（秒），超时后重新拉取配置生成新码
+const QR_TTL = 300;
 const qrVisible = ref(false);
 const qrLoading = ref(false);
 const qrExpired = ref(false);

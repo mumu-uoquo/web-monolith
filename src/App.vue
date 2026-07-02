@@ -36,7 +36,7 @@ const fontColor = computed(() => {
 const route = useRoute();
 
 // 不需要水印的路由白名单
-const noWatermarkRoutes = ["/login", "/403", "/404"];
+const noWatermarkRoutes = ["/", "/login", "/403", "/404"];
 
 /* ***************************** 水印内容 ********************************* */
 /**
@@ -58,11 +58,11 @@ const watermarkContent = computed(() => {
     return "";
   }
   // 如果已经登录，则优先显示用户名
-  if (userStore.userInfo.userName) {
+  if (userStore.userInfo.realName) {
     if ((defaultSettings.watermarkMode as string) === WatermarkMode.ACCOUNT) {
-      return `${userStore.userInfo.userName} ${userStore.userInfo.phone}`;
+      return `${userStore.userInfo.realName} ${userStore.userInfo.phone}`;
     } else if ((defaultSettings.watermarkMode as string) === WatermarkMode.ACCOUNT_TIME) {
-      return `${userStore.userInfo.userName} ${formatDate(timestamp.value)}`;
+      return `${userStore.userInfo.realName} ${formatDate(timestamp.value)}`;
     }
   }
   // 默认显示系统名称
