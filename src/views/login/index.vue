@@ -55,14 +55,14 @@
               :temp-token="mfaTempToken"
               :return-to="LOGIN_MODE_COMPONENT[activeLoginMode]"
               @mfa-success="handleLoginSuccess"
-              @update:model-value="component = $event"
+              @update:model-value="component = $event as LayoutMap"
             />
           </div>
 
           <!-- 微信扫码 -->
           <div v-else-if="component === 'wechat'" key="wechat" class="login-card__form">
             <WechatQrCode
-              @update:model-value="component = $event"
+              @update:model-value="component = $event as LayoutMap"
               @on-submit="handleLoginSuccess"
               @need-bind="handleNeedBind"
               @need-mfa="handleNeedMfa"
@@ -72,7 +72,7 @@
           <!-- 企业微信扫码 -->
           <div v-else-if="component === 'wecom'" key="wecom" class="login-card__form">
             <WecomQrCode
-              @update:model-value="component = $event"
+              @update:model-value="component = $event as LayoutMap"
               @on-submit="handleLoginSuccess"
               @need-bind="handleNeedBind"
               @need-mfa="handleNeedMfa"
@@ -82,7 +82,7 @@
           <!-- 手机号登录 -->
           <div v-else-if="component === 'phone'" key="phone" class="login-card__form">
             <PhoneForm
-              @update:model-value="component = $event"
+              @update:model-value="component = $event as LayoutMap"
               @on-submit="handleLoginSuccess"
               @need-mfa="handleNeedMfa"
             />
@@ -99,7 +99,7 @@
               :temp-token="bindCredential"
               :provider="bindProvider"
               :return-to="LOGIN_MODE_COMPONENT[activeLoginMode]"
-              @update:model-value="component = $event"
+              @update:model-value="component = $event as LayoutMap"
               @on-submit="handleLoginSuccess"
               @need-mfa="handleNeedMfa"
             />
@@ -107,11 +107,11 @@
 
           <!-- 注册 -->
           <div v-else-if="component === 'register'" key="register" class="login-card__form">
-            <Register @update:model-value="component = $event" />
+            <Register @update:model-value="component = $event as LayoutMap" />
           </div>
           <!-- 重置密码 -->
           <div v-else-if="component === 'resetPwd'" key="resetPwd" class="login-card__form">
-            <ResetPwd @update:model-value="component = $event" />
+            <ResetPwd @update:model-value="component = $event as LayoutMap" />
           </div>
         </transition>
 
