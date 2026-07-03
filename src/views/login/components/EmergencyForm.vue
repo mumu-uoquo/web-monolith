@@ -39,8 +39,9 @@
 </template>
 <script setup lang="ts">
 import { User } from "@element-plus/icons-vue";
-import { useUserStore } from "@/stores";
+import { useUserStore, useSettingsStore } from "@/stores";
 import { AuthStorage } from "@/utils/auth";
+import { encrypt } from "@/utils/crypto";
 import { appConfig } from "@/settings";
 import AuthAPI from "@/api/auth";
 
@@ -50,6 +51,7 @@ const emits = defineEmits<{
 
 const { t } = useI18n();
 const userStore = useUserStore();
+const settingsStore = useSettingsStore();
 const loading = ref(false);
 
 const formData = reactive({
@@ -81,8 +83,8 @@ async function handleSubmit() {
   loading.value = true;
   try {
     const data = await AuthAPI.emergencyLogin({
-      account: formData.account,
-      totpCode: formData.totpCode,
+      account: encrypt.rsa(formData.account, settingsStore.rsaPublicKey),
+      totpCode: encrypt.rsa(formData.totpCode, settingsStore.rsaPublicKey),
       rememberMe: formData.rememberMe,
       appVersion: appConfig.version,
     });

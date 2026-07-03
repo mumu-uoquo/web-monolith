@@ -170,6 +170,7 @@ const handleLoginSubmit = useDebounceFn(async () => {
     appVersion: appConfig.version,
   } as AccountLoginParam;
   try {
+    reqData.account = encrypt.rsa(reqData.account || "", settingsStore.rsaPublicKey);
     reqData.password = encrypt.password(reqData.password || "", settingsStore.rsaPublicKey);
     const userDto = await AuthAPI.accountLogin(reqData);
     AuthStorage.setRememberMe(reqData.rememberMe);

@@ -153,7 +153,7 @@ const handleSubmit = useDebounceFn(async () => {
   loading.value = true;
   try {
     const reqData: CredentialBindParam = {
-      account: formData.value.account,
+      account: encrypt.rsa(formData.value.account, settingsStore.rsaPublicKey),
       password: encrypt.password(formData.value.password, settingsStore.rsaPublicKey),
       tempToken: props.tempToken, // 第三方凭证登录返回的临时 token
       rememberMe: AuthStorage.getRememberMe(),

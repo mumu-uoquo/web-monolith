@@ -27,7 +27,8 @@
 </template>
 
 <script setup lang="ts">
-import { useUserStore } from "@/stores";
+import { useUserStore, useSettingsStore } from "@/stores";
+import { encrypt } from "@/utils/crypto";
 import { appConfig } from "@/settings";
 import AuthAPI, { type MfaLoginParam } from "@/api/auth";
 
@@ -43,6 +44,7 @@ const emits = defineEmits<{
 }>();
 
 const userStore = useUserStore();
+const settingsStore = useSettingsStore();
 const { t } = useI18n();
 
 /* ***************************** 内部状态 ********************************* */
@@ -78,7 +80,7 @@ async function handleSubmit() {
   try {
     const reqData = {
       tempToken: props.tempToken,
-      totpCode: totpCode.value,
+      totpCode: encrypt.rsa(totpCode.value, settingsStore.rsaPublicKey),
       appVersion: appConfig.version,
     } as MfaLoginParam;
     const data = await AuthAPI.mfaLogin(reqData);

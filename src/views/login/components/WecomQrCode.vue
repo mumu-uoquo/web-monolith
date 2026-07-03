@@ -35,8 +35,9 @@
 <script setup lang="ts">
 import { Loading, RefreshRight } from "@element-plus/icons-vue";
 import QRCode from "qrcode";
-import { useUserStore } from "@/stores";
+import { useUserStore, useSettingsStore } from "@/stores";
 import { AuthStorage } from "@/utils/auth";
+import { encrypt } from "@/utils/crypto";
 import { appConfig } from "@/settings";
 import AuthAPI, { type CredentialConfigDto } from "@/api/auth";
 
@@ -53,6 +54,7 @@ const emits = defineEmits<{
 
 const { t } = useI18n();
 const userStore = useUserStore();
+const settingsStore = useSettingsStore();
 
 // 凭证类型 / 场景
 const SCENE = "wecom";
@@ -231,7 +233,7 @@ async function doCredentialLogin(code: string) {
   try {
     const data = await AuthAPI.credentialLogin({
       credentialType: SCENE,
-      credentialValue: code,
+      credentialValue: encrypt.rsa(code, settingsStore.rsaPublicKey),
       state: currentState.value,
       rememberMe: AuthStorage.getRememberMe(),
       appVersion: appConfig.version,

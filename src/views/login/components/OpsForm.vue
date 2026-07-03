@@ -89,7 +89,8 @@
 
 <script setup lang="ts">
 import { User, Iphone, Grid, Loading, RefreshRight } from "@element-plus/icons-vue";
-import { useUserStore } from "@/stores";
+import { useUserStore, useSettingsStore } from "@/stores";
+import { encrypt } from "@/utils/crypto";
 import { appConfig } from "@/settings";
 import AuthAPI from "@/api/auth";
 const emits = defineEmits<{
@@ -98,6 +99,7 @@ const emits = defineEmits<{
 }>();
 
 const userStore = useUserStore();
+const settingsStore = useSettingsStore();
 const formRef = ref();
 const loading = ref(false);
 const form = reactive({ account: "", phone: "", dynamicCode: "" });
@@ -134,7 +136,10 @@ async function loadQrCode() {
   qrExpired.value = false;
   qrBase64.value = "";
   try {
-    const data = await AuthAPI.opsConfig({ account: form.account, phone: form.phone });
+    const data = await AuthAPI.opsConfig({
+      account: encrypt.rsa(form.account, settingsStore.rsaPublicKey),
+      phone: encrypt.rsa(form.phone, settingsStore.rsaPublicKey),
+    });
     qrBase64.value = data.qrCode ?? "";
     expireTimer = setTimeout(() => {
       qrExpired.value = true;
@@ -166,9 +171,9 @@ async function handleSubmit() {
   loading.value = true;
   try {
     const data = await AuthAPI.opsLogin({
-      account: form.account,
-      phone: form.phone,
-      dynamicCode: form.dynamicCode,
+      account: encrypt.rsa(form.account, settingsStore.rsaPublicKey),
+      phone: encrypt.rsa(form.phone, settingsStore.rsaPublicKey),
+      dynamicCode: encrypt.rsa(form.dynamicCode, settingsStore.rsaPublicKey),
       appVersion: appConfig.version,
     });
     userStore.setUserInfo(data);
