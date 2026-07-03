@@ -48,6 +48,9 @@ export default defineConfig(({ mode }: ConfigEnv): UserConfig => {
       port: +env.VITE_APP_PORT,
       // 是否自动在浏览器中打开
       open: true,
+      // 允许访问开发服务器的主机名（反向代理/隧道域名需在此放行）
+      // 以 "." 开头表示放行该域名及其所有子域名
+      allowedHosts: [".kanebay.com", ".uoquo.loc", ".uoquo.com"],
       proxy: {
         // 代理前缀为 /dev-api 的请求
         [env.VITE_APP_BASE_API]: {
