@@ -60,7 +60,7 @@ import { Plus, CircleCloseFilled, RefreshLeft } from "@element-plus/icons-vue";
 import { UploadRawFile, UploadRequestOptions, UploadUserFile } from "element-plus";
 import DfsAPI, { UploadFileDto, UploadConfigDto } from "@/api/dfs";
 import FileUtil from "@/utils/file";
-import { http } from "@/utils/http";
+import { http } from "@/api/http";
 
 /* ***************************** 参数定义 ********************************* */
 // 暴露给父级的自定义事件

@@ -4,7 +4,7 @@
       v-if="info.senderAvatar"
       :size="30"
       :src="info.senderAvatar"
-      class="notic e-container-avatar"
+      class="notice-container-avatar"
     />
     <div class="notice-container-text">
       <div class="notice-text-title">

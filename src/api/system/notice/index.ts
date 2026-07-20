@@ -1,4 +1,4 @@
-import { http } from "@/utils/http";
+import { http } from "@/api/http";
 import type { NoticeQueryParams, NoticeForm, NoticeItem, NoticeDetail } from "./types";
 
 const NOTICE_BASE_URL = "/api/v1/notices";

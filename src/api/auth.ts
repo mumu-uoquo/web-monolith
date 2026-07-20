@@ -1,5 +1,5 @@
 import type { AxiosRequestConfig } from "axios";
-import { http } from "@/utils/http";
+import { http } from "@/api/http";
 export const USER_BASE_URL = "/health/api/platform";
 
 /**

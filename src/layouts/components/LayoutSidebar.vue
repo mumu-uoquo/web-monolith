@@ -95,7 +95,7 @@ const activeMenuPath = computed((): string => {
  * 获取完整路径
  *
  * @param routePath 当前路由的相对路径 /user
- * @returns 完整的绝对路径 D://vue3-element-admin/system/user
+ * @returns 完整的绝对路径
  */
 function resolveFullPath(routePath: string) {
   if (isExternal(routePath)) {

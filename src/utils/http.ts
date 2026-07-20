@@ -6,15 +6,21 @@ import axios, {
   type Method,
 } from "axios";
 
-import { useUserStoreHook } from "@/stores";
 import { ResultEnum } from "@/enums/system/result.enum";
-import type { TokenDto } from "@/api/auth";
 
 import FileUtil from "./file";
 import { AuthStorage, redirectToLogin } from "./auth";
 import { guid } from "./common";
 import { encrypt } from "./crypto";
 import { STORAGE_KEYS } from "@/constants";
+
+/**
+ * UserStore 的依赖接口，通过实例化时注入，避免 utils 层依赖业务 Store。
+ */
+export interface UserStoreAdapter {
+  /** 执行 token 刷新，返回新的 token 信息 */
+  refreshToken(): Promise<{ accessToken: string; expireTime?: number }>;
+}
 
 interface OriginalRequest {
   config: AxiosRequestConfig;
@@ -73,13 +79,26 @@ class AxiosWithTokenRefresh {
   // axios 实例
   private instance: AxiosInstance;
 
+  // 注入的 UserStore 适配器
+  private userStore: UserStoreAdapter;
+
+  // 可选的消息提示回调（默认使用 console.error）
+  private messageHandler: (message: string) => void;
+
   // 请求队列（用于 token 刷新期间的请求）
   private requestQueue: OriginalRequest[];
   private isRefreshing: boolean;
   private refreshTimer: any;
   private refreshPromise: Promise<any> | null; // 存储刷新 token 的 Promise
 
-  constructor(config: AxiosRequestConfig = {}) {
+  constructor(
+    config: AxiosRequestConfig = {},
+    userStore: UserStoreAdapter,
+    messageHandler?: (message: string) => void
+  ) {
+    this.userStore = userStore;
+    this.messageHandler = messageHandler || ((msg: string) => console.error(msg || "系统出错"));
+
     // 基础配置
     // 优先级：外部传入 > 生产环境直连（VITE_APP_API_URL）> 同域转发（VITE_APP_BASE_API，由 Nginx 代理）
     const apiUrl = import.meta.env.VITE_APP_API_URL;
@@ -146,9 +165,9 @@ class AxiosWithTokenRefresh {
     this.isRefreshing = true;
     this.refreshPromise = new Promise((resolve, reject) => {
       console.log("刷新 Access Token 开始");
-      useUserStoreHook()
+      this.userStore
         .refreshToken()
-        .then((token: TokenDto) => {
+        .then((token) => {
           console.log("刷新 Access Token 完成");
           // 设置自动刷新
           if (token.expireTime) {
@@ -412,11 +431,7 @@ class AxiosWithTokenRefresh {
    * 信息显示
    */
   private $message(message: string) {
-    ElMessage({
-      message: message || "系统出错",
-      grouping: true,
-      type: "error",
-    });
+    this.messageHandler(message || "系统出错");
   }
 
   /**
@@ -489,15 +504,17 @@ class AxiosWithTokenRefresh {
   }
 }
 
-// 创建单例
-let axiosInstance: AxiosWithTokenRefresh;
-
-export function createAxiosInstance(config: AxiosRequestConfig) {
-  if (!axiosInstance) {
-    axiosInstance = new AxiosWithTokenRefresh(config);
-  }
-  return axiosInstance;
+/**
+ * 工厂函数：创建注入了 userStore 适配器的 HTTP 实例
+ *
+ * @param config Axios 基础配置
+ * @param userStore UserStore 适配器（各应用自行实现 refreshToken）
+ * @param messageHandler 可选的消息提示回调（例如 ElMessage；未传时降级为 console.error）
+ */
+export function createHttpInstance(
+  config: AxiosRequestConfig,
+  userStore: UserStoreAdapter,
+  messageHandler?: (message: string) => void
+): AxiosWithTokenRefresh {
+  return new AxiosWithTokenRefresh(config, userStore, messageHandler);
 }
-
-// 默认导出
-export const http = createAxiosInstance({});
